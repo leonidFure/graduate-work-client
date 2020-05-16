@@ -104,7 +104,7 @@ export const CoursesPage = () => {
     const [currentSortType, setCurrentSortType] = useState(ASC)
 
     const classes = useStyles()
-    const history = useHistory()
+        const history = useHistory()
 
     const alert = useContext(AlertContext)
     const theme = useTheme();

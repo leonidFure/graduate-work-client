@@ -10,11 +10,12 @@ import Grid from '@material-ui/core/Grid'
 import Box from '@material-ui/core/Box'
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined'
 import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
+import {makeStyles} from '@material-ui/core/styles'
 import Container from '@material-ui/core/Container'
 import {useHistory} from "react-router-dom";
 import {AlertContext} from "../context/notify/alertContext";
 import axios from "axios";
+import {STUDENT} from '../roles'
 
 const url = process.env.REACT_APP_SERVER_URL;
 
@@ -131,6 +132,7 @@ export const RegisterPage = () => {
                 .then(response => {
                     localStorage.setItem('accessToken', response.data.accessToken)
                     localStorage.setItem('refreshToken', response.data.refreshToken)
+                    localStorage.setItem('currentUserId', response.data.userId)
                     history.push('/courses')
                 })
                 .catch(e => handleError(e.response.data))
@@ -154,7 +156,7 @@ export const RegisterPage = () => {
             password,
             firstName,
             lastName,
-            role: 'STUDENT'
+            role: STUDENT
         }
         return await axios.post(`${url}/api/auth/register`, userInfo)
     }
@@ -162,10 +164,10 @@ export const RegisterPage = () => {
 
     return (
         <Container component="main" maxWidth="xs">
-            <CssBaseline />
+            <CssBaseline/>
             <div className={classes.paper}>
                 <Avatar className={classes.avatar}>
-                    <LockOutlinedIcon />
+                    <LockOutlinedIcon/>
                 </Avatar>
                 <Typography component="h1" variant="h5">
                     Регистрация
@@ -242,7 +244,7 @@ export const RegisterPage = () => {
                         </Grid>
                         <Grid item xs={12}>
                             <FormControlLabel
-                                control={<Checkbox value="allowExtraEmails" color="primary" />}
+                                control={<Checkbox value="allowExtraEmails" color="primary"/>}
                                 label="Я хочу получать обновления по электронной почте"
                             />
                         </Grid>
@@ -258,7 +260,9 @@ export const RegisterPage = () => {
                     </Button>
                     <Grid container justify="flex-end">
                         <Grid item>
-                            <Link className={classes.link} onClick={() => {history.push('/login')}} variant="body2">
+                            <Link className={classes.link} onClick={() => {
+                                history.push('/login')
+                            }} variant="body2">
                                 Войти в систему
                             </Link>
                         </Grid>
@@ -266,7 +270,7 @@ export const RegisterPage = () => {
                 </form>
             </div>
             <Box mt={5}>
-                <Copyright />
+                <Copyright/>
             </Box>
         </Container>
     );

@@ -38,28 +38,9 @@ import PersonIcon from '@material-ui/icons/Person';
 import ImportContactsIcon from '@material-ui/icons/ImportContacts';
 import clsx from "clsx";
 import Collapse from "@material-ui/core/Collapse";
+import {TabPanel} from "../components/TabPanel";
 
 const url = process.env.REACT_APP_SERVER_URL;
-
-function TabPanel(props) {
-    const {children, value, index, ...other} = props;
-
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`simple-tabpanel-${index}`}
-            aria-labelledby={`simple-tab-${index}`}
-            {...other}
-        >
-            {value === index && (
-                <div>
-                    {children}
-                </div>
-            )}
-        </div>
-    );
-}
 
 
 const useStyles = makeStyles(theme => ({
@@ -109,7 +90,6 @@ export const CoursePage = ({match}) => {
     const [teachersCount, setTeachersCount] = useState()
     const [tab, setTab] = useState(0)
     const [expanded, setExpanded] = React.useState(false);
-
 
 
     useEffect(() => {
@@ -220,122 +200,127 @@ export const CoursePage = ({match}) => {
             {course && course.educationProgram && (
                 <div>
                     <Grid container spacing={6}>
-                        <Grid item xs={3}>
-                            {user && (
-                                <div>
-                                    <Grid container direction={"column"} spacing={4}>
-                                        <Grid item>
-                                            <Card>
-                                                <CardMedia
-                                                    className={classes.cardMedia}
-                                                    image={`${url}${course.imageUrl}`}
-                                                    title={course.name}
-                                                />
-                                                <CardContent>
-                                                    <Typography variant="h5" component="h5"
-                                                                className={classes.headerCard}>
-                                                        {course.educationProgram.name}
-                                                    </Typography>
-                                                    <Typography color="textSecondary" variant="body2"
-                                                                className={classes.headerCard}>
-                                                        {course.educationProgram.description}
-                                                    </Typography>
+                        {user && (
+                            <Grid
+                                item
+                                xs={3}
+                                container
+                                direction={"column"}
+                                spacing={4}
+                            >
+                                <Grid item>
+                                    <Card>
+                                        <CardMedia
+                                            className={classes.cardMedia}
+                                            image={`${url}${course.imageUrl}`}
+                                            title={course.name}
+                                        />
+                                        <CardContent>
+                                            <Typography variant="h5" component="h5"
+                                                        className={classes.headerCard}>
+                                                {course.educationProgram.name}
+                                            </Typography>
+                                            <Typography color="textSecondary" variant="body2"
+                                                        className={classes.headerCard}>
+                                                {course.educationProgram.description}
+                                            </Typography>
 
-                                                </CardContent>
-                                                <CardActions disableSpacing>
-                                                    <Button>Подписаться</Button>
-                                                    <IconButton
-                                                        className={clsx(classes.expand, {
-                                                            [classes.expandOpen]: expanded,
-                                                        })}
-                                                        onClick={handleExpandClick}
-                                                        aria-expanded={expanded}
-                                                        aria-label="show more"
-                                                    >
-                                                        <ExpandMoreIcon/>
-                                                    </IconButton>
-                                                </CardActions>
-                                                <Collapse in={expanded} timeout="auto" unmountOnExit>
-                                                    <CardContent>
-                                                        <List component="nav" className={classes.root}>
-                                                            <ListItem button>
-                                                                <ListItemAvatar>
-                                                                    <Avatar className={classes.avatar}>
-                                                                        <PersonIcon/>
-                                                                    </Avatar>
-                                                                </ListItemAvatar>
-                                                                <ListItemText secondary="Создатель"
-                                                                              primary={`${user.lastName} ${user.firstName} ${user.patronymic == null ? '' : user.patronymic}`}
-                                                                />
-                                                            </ListItem>
-                                                            {subject && (
-                                                                <ListItem button>
-                                                                    <ListItemAvatar>
-                                                                        <Avatar className={classes.avatar}>
-                                                                            <ImportContactsIcon/>
-                                                                        </Avatar>
-                                                                    </ListItemAvatar>
-                                                                    <ListItemText secondary="Предмет"
-                                                                                  primary={subject.name}/>
-                                                                </ListItem>
-                                                            )}
-                                                            <ListItem>
-                                                                <ListItemAvatar>
-                                                                    <Avatar className={classes.avatar}>
-                                                                        <DateRangeIcon/>
-                                                                    </Avatar>
-                                                                </ListItemAvatar>
-                                                                <ListItemText secondary="Период проведения курса"
-                                                                              primary={`${startDateStr} - ${endDateStr}`}/>
-                                                            </ListItem>
-                                                        </List>
-                                                    </CardContent>
-                                                </Collapse>
-                                            </Card>
-                                        </Grid>
-                                        <Grid item>
-                                            <Card>
-                                                <CardContent>
-                                                    {teachers && (
-                                                        teachersCount !== 0 ? (
-                                                            <div>
-                                                                <Typography variant="h5" component="h5"
-                                                                            className={classes.headerCard}>
-                                                                    Преподаватели
-                                                                </Typography>
-                                                                <List component="nav" className={classes.root}>
-                                                                    {
-                                                                        teachers.map(teacher => (
-                                                                            <ListItem key={teacher.id} button>
-                                                                                <ListItemAvatar>
-                                                                                    <Avatar
-                                                                                        src={`${url}${teacher.photoUrl}`}
-                                                                                    />
-                                                                                </ListItemAvatar>
-                                                                                <ListItemText
-                                                                                    primary={`${teacher.lastName} ${teacher.firstName} ${teacher.patronymic == null ? '' : teacher.patronymic}`}
-                                                                                />
-                                                                            </ListItem>
-                                                                        ))
-                                                                    }
-
-                                                                </List>
-                                                                <Button>{`Все преподаватели (${teachersCount && teachersCount})`}</Button>
-                                                            </div>
-                                                        ) : (
-                                                            <Typography variant="h5" component="h5">
-                                                                Преподавателей нет
-                                                            </Typography>
-                                                        )
+                                        </CardContent>
+                                        <CardActions disableSpacing>
+                                            <Button>Подписаться</Button>
+                                            <IconButton
+                                                className={clsx(classes.expand, {
+                                                    [classes.expandOpen]: expanded,
+                                                })}
+                                                onClick={handleExpandClick}
+                                                aria-expanded={expanded}
+                                                aria-label="show more"
+                                            >
+                                                <ExpandMoreIcon/>
+                                            </IconButton>
+                                        </CardActions>
+                                        <Collapse in={expanded} timeout="auto" unmountOnExit>
+                                            <CardContent>
+                                                <List component="nav" className={classes.root}>
+                                                    <ListItem button>
+                                                        <ListItemAvatar>
+                                                            <Avatar className={classes.avatar}>
+                                                                <PersonIcon/>
+                                                            </Avatar>
+                                                        </ListItemAvatar>
+                                                        <ListItemText secondary="Создатель"
+                                                                      primary={`${user.lastName} ${user.firstName} ${user.patronymic == null ? '' : user.patronymic}`}
+                                                        />
+                                                    </ListItem>
+                                                    {subject && (
+                                                        <ListItem button>
+                                                            <ListItemAvatar>
+                                                                <Avatar className={classes.avatar}>
+                                                                    <ImportContactsIcon/>
+                                                                </Avatar>
+                                                            </ListItemAvatar>
+                                                            <ListItemText secondary="Предмет"
+                                                                          primary={subject.name}/>
+                                                        </ListItem>
                                                     )}
+                                                    <ListItem>
+                                                        <ListItemAvatar>
+                                                            <Avatar className={classes.avatar}>
+                                                                <DateRangeIcon/>
+                                                            </Avatar>
+                                                        </ListItemAvatar>
+                                                        <ListItemText secondary="Период проведения курса"
+                                                                      primary={`${startDateStr} - ${endDateStr}`}/>
+                                                    </ListItem>
+                                                </List>
+                                            </CardContent>
+                                        </Collapse>
+                                    </Card>
+                                </Grid>
+                                <Grid item>
+                                    <Card>
+                                        <CardContent>
+                                            {teachers && (
+                                                teachersCount !== 0 ? (
+                                                    <div>
+                                                        <Typography variant="h5" component="h5"
+                                                                    className={classes.headerCard}>
+                                                            Преподаватели
+                                                        </Typography>
+                                                        <List component="nav" className={classes.root}>
+                                                            {
+                                                                teachers.map(teacher => (
+                                                                    <ListItem key={teacher.id} button>
+                                                                        <ListItemAvatar>
+                                                                            <Avatar
+                                                                                src={`${url}${teacher.photoUrl}`}
+                                                                            />
+                                                                        </ListItemAvatar>
+                                                                        <ListItemText
+                                                                            primary={`${teacher.lastName} ${teacher.firstName} ${teacher.patronymic == null ? '' : teacher.patronymic}`}
+                                                                        />
+                                                                    </ListItem>
+                                                                ))
+                                                            }
 
-                                                </CardContent>
-                                            </Card>
-                                        </Grid>
-                                    </Grid>
-                                </div>
-                            )}
-                        </Grid>
+                                                        </List>
+                                                    </div>
+                                                ) : (
+                                                    <Typography variant="h5" component="h5">
+                                                        Преподавателей нет
+                                                    </Typography>
+                                                )
+                                            )}
+                                        </CardContent>
+                                        <CardActions>
+                                            {teachers && teachers.length > 0 && (
+                                                <Button>{`Все преподаватели (${teachersCount && teachersCount})`}</Button>
+                                            )}
+                                        </CardActions>
+                                    </Card>
+                                </Grid>
+                            </Grid>
+                        )}
                         <Grid item xs={9}>
                             <Paper>
                                 <Tabs

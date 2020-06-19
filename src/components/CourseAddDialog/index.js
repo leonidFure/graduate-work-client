@@ -11,9 +11,15 @@ import MaterialTable from "material-table";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 
 export const CourseAddDialog = ({open, handleClose, allEducationPrograms, saveCourseAndTimetables}) => {
-
-    const [startDate, setStartDate] = useState(new Date())
-    const [endDate, setEndDate] = useState(new Date())
+    const getDate = () => {
+        const date = new Date()
+        const ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
+        const mo = new Intl.DateTimeFormat('en', { month: '2-digit' }).format(date)
+        const da = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(date)
+        return `${ye}-${mo}-${da}`
+    }
+    const [startDate, setStartDate] = useState(getDate())
+    const [endDate, setEndDate] = useState(getDate())
     const [educationProgram, setEducationProgram] = useState()
 
 

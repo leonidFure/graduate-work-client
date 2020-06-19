@@ -20,7 +20,7 @@ import {BootstrapInput} from "../components/BootstrapInput";
 import Tooltip from "@material-ui/core/Tooltip";
 import Fab from "@material-ui/core/Fab";
 import {CourseAddDialog} from "../components/CourseAddDialog";
-import { isStudent} from "../roles";
+import {isStudent} from "../roles";
 
 const url = process.env.REACT_APP_SERVER_URL;
 
@@ -130,7 +130,9 @@ export const CoursesPage = () => {
         fetchAllEducationProgram()
             .then(response => response.data)
             .then(p => setAllProgram(p))
-            .catch(e => {handleError(e)})
+            .catch(e => {
+                handleError(e)
+            })
         setPageNum(1)
         // eslint-disable-next-line
     }, [])
@@ -142,7 +144,9 @@ export const CoursesPage = () => {
                 setCount(response.data.totalCount)
                 setPageCount(Math.ceil(response.data.totalCount / pageSize))
             })
-            .catch(e => {handleError(e)})
+            .catch(e => {
+                handleError(e)
+            })
         // eslint-disable-next-line
     }, [pageNum, currentSortField, currentSortType, curCourseNameFilter])
 
@@ -183,7 +187,11 @@ export const CoursesPage = () => {
     }
 
     const fetchAllEducationProgram = async () => {
-        return await axios.get(`${url}/api/education-programs/list`)
+        return await axios.get(`${url}/api/education-programs/list`, {headers: {Authorization: authStr}})
+    }
+
+    const saveCourse = async course => {
+        return await axios.post(`${url}/api/courses`, course, {headers: {Authorization: authStr}})
     }
 
     const handleError = error => {
@@ -213,6 +221,25 @@ export const CoursesPage = () => {
 
     const handleChangeCourseNameFilter = e => {
         setCourseNameFilter(e.target.value)
+    }
+
+    const handleSaveCourseAndTimetable = (course) => {
+        saveCourse(course)
+            .then(() => {
+                setPageNum(1)
+                setCurCourseNameFilter('')
+                setCurrentSortField(CREATION_DATE)
+                setCurrentSortType(ASC)
+                fetchCoursePage()
+                    .then(response => {
+                        setCoursePage(response.data.content)
+                        setCount(response.data.totalCount)
+                        setPageCount(Math.ceil(response.data.totalCount / pageSize))
+                    })
+                    .catch(e => {
+                        handleError(e)
+                    })
+            })
     }
 
     const resolveSortField = (sortField) => {
@@ -349,6 +376,7 @@ export const CoursesPage = () => {
                 handleClose={handleClose}
                 open={open}
                 allEducationPrograms={allProgram}
+                saveCourseAndTimetables={handleSaveCourseAndTimetable}
             />
         </React.Fragment>
 

@@ -1,4 +1,4 @@
-import React, {useContext, useState} from "react"
+import React, {useContext, useEffect, useState} from "react"
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
@@ -7,7 +7,6 @@ import makeStyles from "@material-ui/core/styles/makeStyles";
 import CardHeader from "@material-ui/core/CardHeader";
 import Avatar from "@material-ui/core/Avatar";
 import {CardActions, Link, Tooltip} from "@material-ui/core";
-import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
 import EventAvailableIcon from '@material-ui/icons/EventAvailable';
 import {Rating} from "@material-ui/lab";
@@ -22,8 +21,8 @@ import axios from "axios"
 import {useHistory} from "react-router-dom"
 import {AlertContext} from "../../context/notify/alertContext";
 import Snackbar from "@material-ui/core/Snackbar";
-import {lightBlue} from "@material-ui/core/colors";
 import useTheme from "@material-ui/core/styles/useTheme";
+import {SubscriptionConfirm} from "../SubscriptionConfirm";
 
 
 const useStyles = makeStyles(theme => ({
@@ -36,16 +35,12 @@ const useStyles = makeStyles(theme => ({
     cardMedia: {
         height: 130,
     },
-
     link: {
         cursor: 'pointer'
     },
     divider: {
         marginBottom: theme.spacing(2),
         marginTop: theme.spacing(2)
-    },
-    lightBlue: {
-        backgroundColor: lightBlue["800"]
     },
     action: {
         marginLeft: 'auto',
@@ -70,8 +65,17 @@ export const CourseCard = ({name, startDate, endDate, courseStatus, courseStatus
     const [msg, setMsg] = useState('');
     const alert = useContext(AlertContext)
     const theme = useTheme()
+    const [subOpen, setSubOpen] = useState(false);
 
-    const subscribeHandle = () => {
+    const handleClickSubOpen = () => {
+        setSubOpen(true);
+    };
+
+    const handleSubClose = () => {
+        setSubOpen(false);
+    };
+
+    const handleSubscribe = () => {
         if (hasSub) {
             unSubscribe()
                 .then(response => response.data)
@@ -85,7 +89,9 @@ export const CourseCard = ({name, startDate, endDate, courseStatus, courseStatus
                 .then(handleClick('Подписка оформлена'))
                 .catch(e => handleError(e))
         }
+        setSubOpen(false)
     }
+
 
     const subscribe = async () => {
         await axios.post(`${url}/api/courses/subscribe`,
@@ -162,93 +168,104 @@ export const CourseCard = ({name, startDate, endDate, courseStatus, courseStatus
     }
 
     return (
-        <Card className={classes.root}>
-            <CardHeader
-                avatar={
-                    <Avatar aria-label="recipe" className={classes.lightBlue}>
-                        {avatarStr}
-                    </Avatar>
-                }
-                title={
-                    <Typography variant='subtitle2'>
-                        <Link href="#" color="inherit">
+        <React.Fragment>
+            <Card className={classes.root}>
+                <CardHeader
+                    avatar={
+                        <Avatar aria-label="recipe" >
+                            {avatarStr}
+                        </Avatar>
+                    }
+                    title={
+                        <Typography variant='subtitle2' color={"textPrimary"}>
                             {name}
-                        </Link>
+                        </Typography>
+
+                    }
+                    subheader={
+                        <div style={{display: "flex", verticalAlign: "middle"}}>
+                            <Typography variant={"subtitle2"}>
+                                {`с ${startDateStr} по ${endDateStr}`}
+                            </Typography>
+                            &nbsp;|&nbsp;
+                            <Typography variant={"subtitle2"} color={"textPrimary"}>
+                                {subjectName}
+                            </Typography>
+                        </div>
+                    }
+                />
+                <CardMedia
+                    className={classes.cardMedia}
+                    image={image}
+                    title={name}
+                />
+                <CardContent>
+                    <Typography variant="body2" color="textSecondary" component="p"
+                                style={{marginBottom: theme.spacing(2)}}>
+                        {cropDescription}
                     </Typography>
 
-                }
-                subheader={
-                    <div style={{display: "flex", verticalAlign: "middle"}}>
-                        <Typography variant={"subtitle2"}>
-                            {`с ${startDateStr} по ${endDateStr}`}
-                        </Typography>
-                        &nbsp;|&nbsp;
-                        <Typography variant={"subtitle2"}>
-                            <Link href="#" color={'textPrimary'}>
-                                {subjectName}
-                            </Link>
-                        </Typography>
-                    </div>
-                }
+                    <Grid container spacing={1} justify={"space-between"}>
+                        <Grid item style={{textAlign: "center"}}>
+                            <Tooltip title={`Ретинг: ${rating}`}>
+                                <Typography variant='h6'>
+                                    <Rating size={"small"} value={rating} readOnly/>
+                                </Typography>
+                            </Tooltip>
+                            <Typography variant='caption' color={"textSecondary"}>
+                                Рейтинг
+                            </Typography>
+                        </Grid>
+                        <Grid item style={{textAlign: "center"}}>
+                            <Tooltip title={courseStatusStr}>
+                                <Typography variant='h6'>
+                                    {getIcon()}
+                                </Typography>
+                            </Tooltip>
+                            <Typography variant='caption' color={"textSecondary"}>
+                                Статус
+                            </Typography>
+                        </Grid>
+                        <Grid item style={{textAlign: "center"}}>
+                            <Tooltip title={rating}>
+                                <Typography variant='h6'>
+                                    {rating}
+                                </Typography>
+                            </Tooltip>
+                            <Typography variant='caption' color={"textSecondary"}>
+                                Подписчики
+                            </Typography>
+                        </Grid>
+                    </Grid>
+                </CardContent>
+                <CardActions disableSpacing style={{paddingTop: 0}}>
+                    <Tooltip title='Поделиться'>
+                        <IconButton>
+                            <ShareIcon fontSize={"small"}/>
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title={hasSub ? 'Отписаться' : 'Подписаться'}>
+                        <IconButton onClick={handleClickSubOpen}>
+                            {hasSub ?
+                                <NotificationsIcon fontSize={"small"}/> :
+                                <NotificationsNoneIcon fontSize={"small"}/>
+                            }
+
+                        </IconButton>
+                    </Tooltip>
+                    <Button onClick={handleOpenCourse}>открыть</Button>
+                </CardActions>
+                <Snackbar open={open} autoHideDuration={2000} onClose={handleClose}
+                          anchorOrigin={{vertical: 'bottom', horizontal: 'left'}} message={msg}/>
+            </Card>
+            <SubscriptionConfirm
+                handleClose={handleSubClose}
+                handleSubscribe={handleSubscribe}
+                courseName={name}
+                isSubscribe={!hasSubscription}
+                open={subOpen}
             />
-            <CardMedia className={classes.cardMedia} image={image}
-                       title={name}/>
-            <CardContent>
-                <Typography variant="body2" color="textSecondary" component="p" style={{marginBottom: theme.spacing(2)}}>
-                    {cropDescription}
-                </Typography>
+        </React.Fragment>
 
-                <Grid container spacing={1} justify={"space-between"}>
-                    <Grid item style={{textAlign: "center"}}>
-                        <Tooltip title={`Ретинг: ${rating}`}>
-                            <Typography variant='h6'>
-                                <Rating size={"small"} value={rating} readOnly/>
-                            </Typography>
-                        </Tooltip>
-                        <Typography variant='caption' color={"textSecondary"}>
-                            Рейтинг
-                        </Typography>
-                    </Grid>
-                    <Grid item style={{textAlign: "center"}}>
-                        <Tooltip title={courseStatusStr}>
-                            <Typography variant='h6'>
-                                {getIcon()}
-                            </Typography>
-                        </Tooltip>
-                        <Typography variant='caption' color={"textSecondary"}>
-                            Статус
-                        </Typography>
-                    </Grid>
-                    <Grid item style={{textAlign: "center"}}>
-                        <Tooltip title={rating}>
-                            <Typography variant='h6'>
-                                {rating}
-                            </Typography>
-                        </Tooltip>
-                        <Typography variant='caption' color={"textSecondary"}>
-                            Подписчики
-                        </Typography>
-                    </Grid>
-                </Grid>
-            </CardContent>
-            <CardActions disableSpacing style={{paddingTop: 0}}>
-                <Tooltip title='Поделиться'>
-                    <IconButton>
-                        <ShareIcon fontSize={"small"}/>
-                    </IconButton>
-                </Tooltip>
-                <Tooltip title={hasSub ? 'Отписаться' : 'Подписаться'}>
-                    <IconButton onClick={subscribeHandle}>
-                        {hasSub ?
-                            <NotificationsIcon fontSize={"small"}/> :
-                            <NotificationsNoneIcon fontSize={"small"}/>
-                        }
-
-                    </IconButton>
-                </Tooltip>
-                <Button onClick={handleOpenCourse} style={{color: lightBlue["800"]}}>открыть</Button>
-            </CardActions>
-            <Snackbar open={open} autoHideDuration={2000} onClose={handleClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }} message={msg}/>
-        </Card>
     );
 }

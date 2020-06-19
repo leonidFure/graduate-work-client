@@ -4,16 +4,13 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import CssBaseline from "@material-ui/core/CssBaseline";
-import {lightBlue} from "@material-ui/core/colors";
 
 
 
 const useStyles = makeStyles((theme) => ({
     appBar: {
-        zIndex: theme.zIndex.drawer + 1,
-        backgroundColor: lightBlue["800"]
+        zIndex: theme.zIndex.drawer + 1
     }
-
 }));
 
 export default function NavBar() {
@@ -24,7 +21,7 @@ export default function NavBar() {
             <AppBar position="fixed" className={classes.appBar}>
                 <Toolbar>
                     <Typography variant="subtitle1" noWrap>
-                        ДИСТАНЦИОННОЕ ОБУЧЕНИЕ
+                        Дистанционная подготовка абитуриентов
                     </Typography>
                 </Toolbar>
             </AppBar>

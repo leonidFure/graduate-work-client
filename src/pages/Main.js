@@ -6,9 +6,14 @@ import {CoursesPage} from "./CoursesPage";
 import {CoursePage} from "./CoursePage";
 import {UserPage} from "./UserPage";
 import {makeStyles} from "@material-ui/core/styles";
-import {lightBlue} from "@material-ui/core/colors";
 import {LoginPage} from "./LoginPage";
 import {RegisterPage} from "./RegisterPage";
+import {LessonPage} from "./LessonPage";
+import {SubjectPage} from "./SubjectsPage";
+import {TrainingDirectionsPage} from "./TrainingDirectionsPage";
+import {UsersPage} from "./UsersPage";
+import {EducationProgramsPage} from "./EducationProgramsPage";
+import {FacultiesPage} from "./FacultiesPage";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -16,7 +21,6 @@ const useStyles = makeStyles((theme) => ({
     },
     appBar: {
         zIndex: theme.zIndex.drawer + 1,
-        backgroundColor: lightBlue["800"]
     },
     content: {
         flexGrow: 1,
@@ -45,7 +49,13 @@ const Main = () => {
                         <Route path={'/register'} component={RegisterPage}/>
                         <Route path={'/courses'} exact component={CoursesPage}/>
                         <Route path={'/courses/:id'} component={CoursePage}/>
+                        <Route path={'/users'} exact component={UsersPage}/>
                         <Route path={'/users/:id'} component={UserPage}/>
+                        <Route path={'/lessons/:id'} component={LessonPage}/>
+                        <Route path={'/subjects'} component={SubjectPage}/>
+                        <Route path={'/training-directions'} component={TrainingDirectionsPage}/>
+                        <Route path={'/education-programs'} component={EducationProgramsPage}/>
+                        <Route path={'/faculties'} component={FacultiesPage}/>
                     </Switch>
                 </main>
             </div>

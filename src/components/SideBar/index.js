@@ -4,6 +4,8 @@ import ListItemText from "@material-ui/core/ListItemText";
 import Drawer from "@material-ui/core/Drawer";
 import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
+import Divider from "@material-ui/core/Divider";
+import Typography from "@material-ui/core/Typography";
 
 const drawerWidth = 240;
 
@@ -15,7 +17,6 @@ const useStyles = makeStyles((theme) => ({
     drawerPaper: {
         width: drawerWidth,
     },
-    // necessary for content to be below app bar
     toolbar: theme.mixins.toolbar,
 
 }));
@@ -24,7 +25,7 @@ export const SideBar = ({show}) => {
     const classes = useStyles()
     const userId = localStorage.getItem('currentUserId')
 
-    if(!show) return ''
+    if (!show) return ''
 
     return (
         <Drawer
@@ -39,17 +40,33 @@ export const SideBar = ({show}) => {
                 <ListItem button component={'a'} href={`/users/${userId}`}>
                     <ListItemText primary={'Личный кабинет'}/>
                 </ListItem>
-                <ListItem button component={'a'}>
-                    <ListItemText primary={'Лента новостей'}/>
+                <ListItem  button component={'a'} href={'/courses'}>
+                    <ListItemText primary={'Курсы'}/>
                 </ListItem>
-                <ListItem button component={'a'}>
-                    <ListItemText primary={'Расписание'}/>
-                </ListItem>
-                <ListItem button component={'a'}>
+                <ListItem button component={'a'} href={'/users'}>
                     <ListItemText primary={'Пользователи'}/>
                 </ListItem>
-                <ListItem button component={'a'} href={'/courses'}>
-                    <ListItemText primary={'Курсы'}/>
+                <ListItem  button component={'a'} href={'/training-directions'}>
+                    <ListItemText primary={'Учебные направления'}/>
+                </ListItem>
+                <ListItem button component={'a'} href={'/education-programs'}>
+                    <ListItemText primary={'Программы обучения'}/>
+                </ListItem>
+                <ListItem button component={'a'} href={'/subjects'}>
+                    <ListItemText primary={'Предметы'}/>
+                </ListItem>
+
+                <ListItem button component={'a'} href={'/faculties'}>
+                    <ListItemText primary={'Институты'}/>
+                </ListItem>
+                <Divider/>
+                <ListItem button component={'a'} href={'/courses'} color={"primary"}>
+                    <ListItemText primary={
+                        <Typography color={"secondary"}>
+                            Выйти
+                        </Typography>
+                    }
+                    />
                 </ListItem>
             </List>
         </Drawer>

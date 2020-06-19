@@ -7,7 +7,6 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import Link from '@material-ui/core/Link';
 import Grid from '@material-ui/core/Grid';
-import Box from '@material-ui/core/Box';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
@@ -15,19 +14,6 @@ import Container from '@material-ui/core/Container';
 import {AlertContext} from "../context/notify/alertContext";
 import {useHistory} from "react-router-dom";
 import axios from "axios";
-
-function Copyright() {
-    return (
-        <Typography variant="body2" color="textSecondary" align="center">
-            {'Copyright © '}
-            <Link color="inherit" href="https://material-ui.com/">
-                Your Website
-            </Link>{' '}
-            {new Date().getFullYear()}
-            {'.'}
-        </Typography>
-    )
-}
 
 const useStyles = makeStyles(theme => ({
     paper: {
@@ -94,6 +80,7 @@ export const LoginPage = () => {
                 localStorage.setItem('accessToken', response.data.accessToken)
                 localStorage.setItem('refreshToken', response.data.refreshToken)
                 localStorage.setItem('currentUserId', response.data.userId)
+                localStorage.setItem('role', response.data.role)
                 history.entries = [];
                 history.index = -1;
                 history.push(`/courses`);
@@ -175,7 +162,7 @@ export const LoginPage = () => {
                         // type="submit"
                         fullWidth
                         variant="contained"
-                        color="primary"
+                        color={"primary"}
                         className={classes.submit}
                         onClick={handleLogin}
                     >
@@ -189,15 +176,12 @@ export const LoginPage = () => {
                         </Grid>
                         <Grid item>
                             <Link className={classes.link} onClick={() => {history.push('/register')}} variant="body2">
-                                Зарегестрироваться
+                                Зарегистрироваться
                             </Link>
                         </Grid>
                     </Grid>
                 </form>
             </div>
-            <Box mt={8}>
-                <Copyright />
-            </Box>
         </Container>
     );
 }

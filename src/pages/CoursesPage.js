@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from "react"
 import axios from "axios"
-import {useHistory} from "react-router-dom"
+import {useHistory, useLocation} from "react-router-dom"
 import {AlertContext} from "../context/notify/alertContext";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import Grid from "@material-ui/core/Grid";
@@ -14,7 +14,13 @@ import Pagination from "@material-ui/lab/Pagination";
 import IconButton from "@material-ui/core/IconButton";
 import InputBase from "@material-ui/core/InputBase";
 import FormControl from "@material-ui/core/FormControl";
-import withStyles from "@material-ui/core/styles/withStyles";
+import AddIcon from '@material-ui/icons/Add';
+
+import {BootstrapInput} from "../components/BootstrapInput";
+import Tooltip from "@material-ui/core/Tooltip";
+import Fab from "@material-ui/core/Fab";
+import {CourseAddDialog} from "../components/CourseAddDialog";
+import { isStudent} from "../roles";
 
 const url = process.env.REACT_APP_SERVER_URL;
 
@@ -69,30 +75,25 @@ const useStyles = makeStyles(theme => ({
     iconButton: {
         padding: 10,
     },
+    absolute: {
+        position: 'fixed',
+        bottom: theme.spacing(2),
+        right: theme.spacing(3),
+    },
 }))
 
-const BootstrapInput = withStyles((theme) => ({
-    input: {
-        borderRadius: 4,
-        position: 'relative',
-        backgroundColor: theme.palette.background.paper,
-        fontSize: 16,
-        boxShadow: '0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12)',
-        padding: '14px 26px 15px 12px',
-        transition: theme.transitions.create(['border-color', 'box-shadow']),
-        '&:focus': {
-            borderRadius: 4,
-            borderColor: '#80bdff',
-            boxShadow: '0 0 0 0.2rem rgba(0,123,255,.25)',
-        },
-    },
-}))(InputBase);
 
+const subjectUrl = '/api/files/subject?id='
+
+function useQuery() {
+    return new URLSearchParams(useLocation().search);
+}
 
 export const CoursesPage = () => {
     const ACCESS_TOKEN = localStorage.getItem('accessToken')
     const authStr = 'Bearer '.concat(ACCESS_TOKEN);
-
+    const query = useQuery()
+    const subjectId = query.get("subject_id")
     const [coursePage, setCoursePage] = useState()
     const [pageCount, setPageCount] = useState(1)
     const [subjectList, setSubjectList] = useState()
@@ -100,20 +101,36 @@ export const CoursesPage = () => {
     const [count, setCount] = useState(0)
     const [dictionary, setDictionary] = useState()
     const [courseNameFilter, setCourseNameFilter] = useState('')
+    const [curCourseNameFilter, setCurCourseNameFilter] = useState('')
     const [currentSortField, setCurrentSortField] = useState(CREATION_DATE)
     const [currentSortType, setCurrentSortType] = useState(ASC)
+    const [open, setOpen] = useState(false);
+    const [allProgram, setAllProgram] = useState([]);
 
     const classes = useStyles()
-        const history = useHistory()
+    const history = useHistory()
 
     const alert = useContext(AlertContext)
     const theme = useTheme();
 
     const pageSize = 8
 
+
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
     useEffect(() => {
         fetchDictionary()
             .then(response => setDictionary(response.data))
+        fetchAllEducationProgram()
+            .then(response => response.data)
+            .then(p => setAllProgram(p))
+            .catch(e => {handleError(e)})
         setPageNum(1)
         // eslint-disable-next-line
     }, [])
@@ -125,11 +142,9 @@ export const CoursesPage = () => {
                 setCount(response.data.totalCount)
                 setPageCount(Math.ceil(response.data.totalCount / pageSize))
             })
-            .catch(e => {
-                handleError(e)
-            })
+            .catch(e => {handleError(e)})
         // eslint-disable-next-line
-    }, [pageNum])
+    }, [pageNum, currentSortField, currentSortType, curCourseNameFilter])
 
     useEffect(() => {
         if (coursePage) {
@@ -143,17 +158,8 @@ export const CoursesPage = () => {
 
     useEffect(() => {
         setPageNum(1)
-        fetchCoursePage()
-            .then(response => {
-                setCoursePage(response.data.content)
-                setCount(response.data.totalCount)
-                setPageCount(Math.ceil(response.data.totalCount / pageSize))
-            })
-            .catch(e => {
-                handleError(e)
-            })
         // eslint-disable-next-line
-    }, [currentSortField, currentSortType])
+    }, [currentSortField, currentSortType, curCourseNameFilter])
 
     const fetchCoursePage = async () => {
         const pageRequest = {
@@ -161,7 +167,8 @@ export const CoursesPage = () => {
             pageSize,
             nameFilter: courseNameFilter,
             sortField: currentSortField,
-            sortType: currentSortType
+            sortType: currentSortType,
+            subjectId
         }
         return await axios.post(`${url}/api/courses/page`, pageRequest, {headers: {Authorization: authStr}})
     }
@@ -173,6 +180,10 @@ export const CoursesPage = () => {
     const fetchSubjectList = async (ids) => {
         const request = {ids}
         return await axios.post(`${url}/api/subjects/list`, request, {headers: {Authorization: authStr}})
+    }
+
+    const fetchAllEducationProgram = async () => {
+        return await axios.get(`${url}/api/education-programs/list`)
     }
 
     const handleError = error => {
@@ -187,7 +198,6 @@ export const CoursesPage = () => {
         setPageNum(value);
     };
 
-
     const handleChangeSortField = e => {
         setCurrentSortField(e.target.value);
     };
@@ -198,16 +208,7 @@ export const CoursesPage = () => {
 
     const handleCourseNameSubmit = (e) => {
         e.preventDefault();
-        setPageNum(1)
-        fetchCoursePage()
-            .then(response => {
-                setCoursePage(response.data.content)
-                setCount(response.data.totalCount)
-                setPageCount(Math.ceil(response.data.totalCount / pageSize))
-            })
-            .catch(e => {
-                handleError(e)
-            })
+        setCurCourseNameFilter(courseNameFilter)
     }
 
     const handleChangeCourseNameFilter = e => {
@@ -245,95 +246,111 @@ export const CoursesPage = () => {
     }
 
     return (
-        <div>
-            <div style={{marginBottom: theme.spacing(3)}}>
-                <Grid container justify={"space-between"} alignItems={"center"}>
-                    <Grid item>
-                        <Paper component="form" onSubmit={handleCourseNameSubmit} className={classes.search} elevation={2}>
-                            <InputBase
-                                className={classes.input}
-                                placeholder="Введите название курса"
-                                onChange={handleChangeCourseNameFilter}
-                            />
-                            <IconButton
-                                type="submit"
-                                className={classes.iconButton}
-                            >
-                                <SearchIcon/>
-                            </IconButton>
-                        </Paper>
-                    </Grid>
-                    <Grid item>
-                        <div>
-                            <FormControl>
-                                <Select
-                                    value={currentSortField}
-                                    onChange={handleChangeSortField}
-                                    name="sortField"
-                                    input={<BootstrapInput/>}
-                                >
-                                    <MenuItem value={CREATION_DATE}>{resolveSortField(CREATION_DATE)}</MenuItem>
-                                    <MenuItem value={START_DATE}>{resolveSortField(START_DATE)}</MenuItem>
-                                    <MenuItem value={END_DATE}>{resolveSortField(END_DATE)}</MenuItem>
-                                </Select>
-                            </FormControl>
-                            <FormControl style={{marginLeft: theme.spacing(2)}}>
-                                <Select
-                                    value={currentSortType}
-                                    onChange={handleChangeSortType}
-                                    name="sortType"
-                                    input={<BootstrapInput/>}
-                                >
-                                    <MenuItem value={ASC}>{resolveSortType(ASC)}</MenuItem>
-                                    <MenuItem value={DESC}>{resolveSortType(DESC)}</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </div>
-                    </Grid>
-                </Grid>
-            </div>
-            <div style={{marginBottom: theme.spacing(1)}}>
-                {count && pageNum && pageCount && (
-                    <Typography variant='body2' color="textSecondary">
-                        {`${count} курсов найдено. Страница ${pageNum} из ${pageCount}`}
-                    </Typography>
-                )}
-            </div>
+        <React.Fragment>
             <div>
-                <Grid container className={classes.root} spacing={3}>
-                    {coursePage && (
-                        coursePage.map(course => (
-                            course.educationProgram && subjectList && (
-                                <Grid key={course.id} item xs={3}>
-                                    <CourseCard
-                                        name={course.educationProgram.name}
-                                        startDate={course.startDate}
-                                        endDate={course.endDate}
-                                        courseStatus={course.status}
-                                        courseStatusStr={dictionary[course.status]}
-                                        description={course.educationProgram.description}
-                                        image={`${url}${course.imageUrl}`}
-                                        rating={course.rating}
-                                        ratingCount={course.ratingCount}
-                                        subjectName={getSubjectName(course.educationProgram.subjectId)}
-                                        hasSubscription={course.hasSubscription}
-                                        courseId={course.id}
-                                    />
-                                </Grid>
-                            )
-                        ))
+                <div style={{marginBottom: theme.spacing(3)}}>
+                    <Grid container justify={"space-between"} alignItems={"center"}>
+                        <Grid item>
+                            <Paper component="form" onSubmit={handleCourseNameSubmit} className={classes.search}
+                                   elevation={2}>
+                                <InputBase
+                                    className={classes.input}
+                                    placeholder="Введите название курса"
+                                    onChange={handleChangeCourseNameFilter}
+                                />
+                                <IconButton
+                                    type="submit"
+                                    className={classes.iconButton}
+                                >
+                                    <SearchIcon/>
+                                </IconButton>
+                            </Paper>
+                        </Grid>
+                        <Grid item>
+                            <div>
+                                <FormControl>
+                                    <Select
+                                        value={currentSortField}
+                                        onChange={handleChangeSortField}
+                                        name="sortField"
+                                        input={<BootstrapInput/>}
+                                    >
+                                        <MenuItem value={CREATION_DATE}>{resolveSortField(CREATION_DATE)}</MenuItem>
+                                        <MenuItem value={START_DATE}>{resolveSortField(START_DATE)}</MenuItem>
+                                        <MenuItem value={END_DATE}>{resolveSortField(END_DATE)}</MenuItem>
+                                    </Select>
+                                </FormControl>
+                                <FormControl style={{marginLeft: theme.spacing(2)}}>
+                                    <Select
+                                        value={currentSortType}
+                                        onChange={handleChangeSortType}
+                                        name="sortType"
+                                        input={<BootstrapInput/>}
+                                    >
+                                        <MenuItem value={ASC}>{resolveSortType(ASC)}</MenuItem>
+                                        <MenuItem value={DESC}>{resolveSortType(DESC)}</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </div>
+                        </Grid>
+                    </Grid>
+                </div>
+                <div style={{marginBottom: theme.spacing(1)}}>
+                    {count && pageNum && pageCount && (
+                        <Typography variant='body2' color="textSecondary">
+                            {`${count} курсов найдено. Страница ${pageNum} из ${pageCount}`}
+                        </Typography>
                     )}
-                </Grid>
-                <div style={{display: 'flex', justifyContent: 'center', marginTop: theme.spacing(2)}}>
-                    <Pagination
-                        count={pageCount}
-                        color="primary"
-                        page={pageNum}
-                        onChange={handleChangePage}
-                    />
+                </div>
+                <div>
+                    <Grid container className={classes.root} spacing={3}>
+                        {coursePage && (
+                            coursePage.map(course => (
+                                course.educationProgram && subjectList && (
+                                    <Grid key={course.id} item xs={3}>
+                                        <CourseCard
+                                            name={course.educationProgram.name}
+                                            startDate={course.startDate}
+                                            endDate={course.endDate}
+                                            courseStatus={course.status}
+                                            courseStatusStr={dictionary[course.status]}
+                                            description={course.educationProgram.description}
+                                            image={`${url}${course.imageUrl}`}
+                                            alternateImage={`${url}${subjectUrl}${course.educationProgram.subjectId}`}
+                                            rating={course.rating}
+                                            ratingCount={course.ratingCount}
+                                            subjectName={getSubjectName(course.educationProgram.subjectId)}
+                                            hasSubscription={course.hasSubscription}
+                                            courseId={course.id}
+                                        />
+                                    </Grid>
+                                )
+                            ))
+                        )}
+                    </Grid>
+                    <div style={{display: 'flex', justifyContent: 'center', marginTop: theme.spacing(2)}}>
+                        <Pagination
+                            count={pageCount}
+                            color="primary"
+                            page={pageNum}
+                            onChange={handleChangePage}
+                        />
+                    </div>
+                    {(!isStudent()) && (
+                        <Tooltip title="Добавить курс" aria-label="add">
+                            <Fab color="primary" onClick={handleClickOpen} className={classes.absolute}>
+                                <AddIcon/>
+                            </Fab>
+                        </Tooltip>
+                    )}
                 </div>
             </div>
-        </div>
+            <CourseAddDialog
+                handleClose={handleClose}
+                open={open}
+                allEducationPrograms={allProgram}
+            />
+        </React.Fragment>
 
     );
 }

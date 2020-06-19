@@ -7,7 +7,6 @@ import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Checkbox from '@material-ui/core/Checkbox'
 import Link from '@material-ui/core/Link'
 import Grid from '@material-ui/core/Grid'
-import Box from '@material-ui/core/Box'
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined'
 import Typography from '@material-ui/core/Typography'
 import {makeStyles} from '@material-ui/core/styles'
@@ -19,19 +18,6 @@ import {STUDENT} from '../roles'
 
 const url = process.env.REACT_APP_SERVER_URL;
 
-
-function Copyright() {
-    return (
-        <Typography variant="body2" color="textSecondary" align="center">
-            {'Copyright © '}
-            <Link color="inherit" href="https://material-ui.com/">
-                Your Website
-            </Link>{' '}
-            {new Date().getFullYear()}
-            {'.'}
-        </Typography>
-    )
-}
 
 const useStyles = makeStyles(theme => ({
     paper: {
@@ -133,6 +119,7 @@ export const RegisterPage = () => {
                     localStorage.setItem('accessToken', response.data.accessToken)
                     localStorage.setItem('refreshToken', response.data.refreshToken)
                     localStorage.setItem('currentUserId', response.data.userId)
+                    localStorage.setItem('role', response.data.role)
                     history.push('/courses')
                 })
                 .catch(e => handleError(e.response.data))
@@ -256,7 +243,7 @@ export const RegisterPage = () => {
                         className={classes.submit}
                         onClick={handleRegister}
                     >
-                        Зарегестрироваться
+                        зарегистрироваться
                     </Button>
                     <Grid container justify="flex-end">
                         <Grid item>
@@ -269,9 +256,6 @@ export const RegisterPage = () => {
                     </Grid>
                 </form>
             </div>
-            <Box mt={5}>
-                <Copyright/>
-            </Box>
         </Container>
     );
 }

@@ -32,7 +32,6 @@ export const EducationProgramsCard = ({educationPrograms, educationsProgramsCoun
                                         secondary={getCropDescription(educationProgram.description)}
                                     />
                                 </ListItem>
-
                             </div>
                         ))}
                     </List>

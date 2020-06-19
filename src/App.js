@@ -7,11 +7,11 @@ import {LoaderState} from "./context/loader/LoaderState";
 import {MuiPickersUtilsProvider} from "@material-ui/pickers";
 import DateFnsUtils from '@date-io/date-fns';
 import Main from "./pages/Main";
-
+import ruLocale from "date-fns/locale/ru";
 
 function App() {
     return (
-        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+        <MuiPickersUtilsProvider utils={DateFnsUtils} locale={ruLocale}>
             <LoaderState>
                 <AlertState>
                     <Router>

@@ -1,16 +1,11 @@
 import React from "react";
-import {CardActions, CardContent, CardHeader} from "@material-ui/core";
-import Avatar from "@material-ui/core/Avatar";
-import Grid from "@material-ui/core/Grid";
-import Chip from "@material-ui/core/Chip";
-import AccountCircleIcon from "@material-ui/icons/AccountCircle";
+import {CardActions, CardContent} from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import {HtmlTooltip} from "../HtmlTooltip";
-import Divider from "@material-ui/core/Divider";
 import makeStyles from "@material-ui/core/styles/makeStyles";
-import Link from "@material-ui/core/Link";
+import {isAdmin} from "../../roles";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -61,6 +56,7 @@ export const EducationProgramCard = ({educationProgram}) => {
             </CardContent>
             <CardActions>
                 <Button className={classes.button} size={"small"}>Перейти к курсам</Button>
+                {isAdmin() && (<Button size={"small"}>Редактировать</Button>)}
             </CardActions>
         </Card>
     )

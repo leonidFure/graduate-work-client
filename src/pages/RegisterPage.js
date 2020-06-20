@@ -120,7 +120,7 @@ export const RegisterPage = () => {
                     localStorage.setItem('refreshToken', response.data.refreshToken)
                     localStorage.setItem('currentUserId', response.data.userId)
                     localStorage.setItem('role', response.data.role)
-                    history.push('/courses')
+                    history.push(`/users/${response.data.userId}`);
                 })
                 .catch(e => handleError(e.response.data))
 

@@ -15,7 +15,8 @@ export const TrainingDirectionSettingDialog = ({ trainingDirection, curFaculty, 
     const [id, setId] = useState(trainingDirection.id)
     const [description, setDescription] = useState(trainingDirection.description)
     const [code, setCode] = useState(trainingDirection.code)
-    const [faculty, setFaculty] = useState(curFaculty)
+    const [defaultFaculty, setDefaultFaculty] = useState(curFaculty)
+    const [faculty, setFaculty] = useState(defaultFaculty)
     const [subjects, setSubjects] = useState(trainingDirection.subjects)
     const [subjectsIds, setSubjectsIds] = useState(trainingDirection.subjects ? trainingDirection.subjects.map(s => s.id) : [])
     const [nameValid, setNameValid] = useState(true)
@@ -76,6 +77,7 @@ export const TrainingDirectionSettingDialog = ({ trainingDirection, curFaculty, 
             trainingDirection.code = code
             trainingDirection.description = description
             trainingDirection.facultyId = faculty.id
+            setDefaultFaculty(faculty)
             trainingDirection.subjectIds = subjects ? subjects.map(s => s.id) : []
             saveDirectionInfo(trainingDirection)
             handleClose()
@@ -134,7 +136,7 @@ export const TrainingDirectionSettingDialog = ({ trainingDirection, curFaculty, 
                                 options={allFaculties}
                                 getOptionLabel={(option) => option.name}
                                 onChange={handleChangeFaculty}
-                                defaultValue={allFaculties.find(f => f.id === faculty.id)}
+                                defaultValue={allFaculties.find(f => f.id === defaultFaculty.id)}
                                 renderInput={(params) => <TextField {...params} label="Институт" variant="outlined" />}
                             />
                         )}

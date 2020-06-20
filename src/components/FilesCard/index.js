@@ -7,57 +7,85 @@ import ListItemText from "@material-ui/core/ListItemText";
 import Card from "@material-ui/core/Card";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import Avatar from "@material-ui/core/Avatar";
-import TodayIcon from "@material-ui/icons/Today";
 import Grid from "@material-ui/core/Grid";
-import Button from "@material-ui/core/Button";
 import {CardActions} from "@material-ui/core";
 import InsertDriveFileIcon from '@material-ui/icons/InsertDriveFile';
+import {isAdmin} from "../../roles";
+import {FileUploadForm} from "../FileUploadForm";
+import {HtmlTooltip} from "../HtmlTooltip";
+import makeStyles from "@material-ui/core/styles/makeStyles";
+
 const url = process.env.REACT_APP_SERVER_URL;
 
-export const FilesCard = ({files, count}) => {
+const userId = localStorage.getItem('currentUserId')
+
+
+const useStyles = makeStyles(theme => ({
+    root: {
+        flexShrink: 0,
+        maxHeight: 300,
+        overflow: 'auto',
+
+    },
+    headerCard: {
+        marginBottom: theme.spacing(1)
+    }
+}))
+
+export const FilesCard = ({files, creatorId, uploadFile, visible}) => {
+    const classes = useStyles()
+
     return (
         <Card>
             <CardContent>
                 <Typography>
                     Приложенные файлы
                 </Typography>
-                {files && count > 0 ? (
+                {files && files.length > 0 ? (
                     <div>
-                        <List component="nav" dense={true}>
+                        <List component="nav" dense={true}  className={classes.root}>
                             {files.map(file => (
-                                <ListItem button component={"a"} href={`${url}${file.url}`}>
-                                    <Grid container alignItems={"center"}>
-                                        <Grid item>
-                                            <ListItemAvatar>
-                                                <Avatar>
-                                                    <InsertDriveFileIcon/>
-                                                </Avatar>
-                                            </ListItemAvatar>
+                                <HtmlTooltip title={
+                                    <React.Fragment>
+                                        <Typography>
+                                            Название файла:
+                                        </Typography>
+                                        <Typography variant={"body2"}>
+                                            {file.name}
+                                        </Typography>
+                                    </React.Fragment>
+                                } key={file.id}>
+                                    <ListItem button component={"a"} href={`${url}${file.url}`}>
+                                        <Grid container alignItems={"center"}>
+                                            <Grid item>
+                                                <ListItemAvatar>
+                                                    <Avatar>
+                                                        <InsertDriveFileIcon/>
+                                                    </Avatar>
+                                                </ListItemAvatar>
+                                            </Grid>
+                                            <Grid item xs zeroMinWidth>
+                                                <ListItemText
+                                                    primary={
+                                                        <Typography noWrap>
+                                                            {file.name}
+                                                        </Typography>
+                                                    }
+                                                    secondary={new Date(file.uploadingDateTime).toLocaleDateString('ru', {
+                                                        day: 'numeric',
+                                                        month: 'long',
+                                                        year: 'numeric'
+                                                    })}
+                                                />
+                                            </Grid>
                                         </Grid>
-                                        <Grid item xs zeroMinWidth>
-                                            <ListItemText
-                                                primary={
-                                                    <Typography noWrap>
-                                                        {file.name}
-                                                    </Typography>
-                                                }
-                                                secondary={new Date(file.uploadingDateTime).toLocaleDateString('ru', {
-                                                    day: 'numeric',
-                                                    month: 'long',
-                                                    year: 'numeric'
-                                                })}
-                                            />
-                                        </Grid>
-                                    </Grid>
-                                </ListItem>
+                                    </ListItem>
+                                </HtmlTooltip>
+
                             ))
                             }
                         </List>
-                        {files.length < count && (
-                            <CardActions>
-                                <Button>{`Все файлы (${count})`}</Button>
-                            </CardActions>
-                        )}
+
                     </div>
 
                 ) : (
@@ -66,6 +94,11 @@ export const FilesCard = ({files, count}) => {
                     </Typography>
                 )}
             </CardContent>
+            <CardActions>
+                {(isAdmin() || creatorId === userId) && (
+                    <FileUploadForm uploadFile={uploadFile} visible={visible}/>
+                )}
+            </CardActions>
         </Card>
     )
 }

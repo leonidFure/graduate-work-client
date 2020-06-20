@@ -131,7 +131,7 @@ export const FacultiesPage = () => {
             <div>
                 <div style={{marginBottom: theme.spacing(1)}}>
                     {count && pageNum && pageCount && (
-                        <Typography variant='body2' color="textSecondary">
+                        <Typography color="textSecondary">
                             {`${count} предметов найдено. Страница ${pageNum} из ${pageCount}`}
                         </Typography>
                     )}

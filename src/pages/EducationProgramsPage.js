@@ -35,6 +35,7 @@ const authStr = 'Bearer '.concat(ACCESS_TOKEN);
 export const EducationProgramsPage = () => {
     const classes = useStyles()
     const history = useHistory()
+
     const theme = useTheme();
     const alert = useContext(AlertContext)
 
@@ -137,7 +138,7 @@ export const EducationProgramsPage = () => {
             <div>
                 <div style={{marginBottom: theme.spacing(1)}}>
                     {count && pageNum && pageCount && (
-                        <Typography variant='body2' color="textSecondary">
+                        <Typography color="textSecondary">
                             {`${count} программ обучения найдено. Страница ${pageNum} из ${pageCount}`}
                         </Typography>
                     )}

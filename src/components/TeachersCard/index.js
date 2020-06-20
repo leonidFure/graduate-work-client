@@ -11,6 +11,7 @@ import Card from "@material-ui/core/Card";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import List from "@material-ui/core/List";
 import {TeacherAddDialog} from "../TeacherAddDialog";
+import {isAdmin} from "../../roles";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -25,8 +26,9 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const url = process.env.REACT_APP_SERVER_URL;
+const userId = localStorage.getItem('currentUserId')
 
-export const TeachersCard = ({teachers, courseId, open, handleClickOpen, handleClose}) => {
+export const TeachersCard = ({teachers, courseId, open, handleClickOpen, handleClose, managerId}) => {
 
     const classes = useStyles()
 
@@ -67,7 +69,9 @@ export const TeachersCard = ({teachers, courseId, open, handleClickOpen, handleC
                     }
                 </CardContent>
                 <CardActions>
-                    <Button onClick={handleClickOpen}>Добавить преподавателей</Button>
+                    {(isAdmin() || managerId === userId) && (
+                        <Button onClick={handleClickOpen}>Добавить преподавателей</Button>
+                    )}
                 </CardActions>
             </Card>
             <TeacherAddDialog

@@ -63,7 +63,7 @@ export const UserInfoCard = ({user, faculties, isCurrentUser, saveUserInfo, allF
                         Основная информация:
                     </Typography>
                     <Typography variant="body2" color="textSecondary" component="p">
-                        {user.info}
+                        {user.info? (user.info): ('Информация отсутсвует')}
                     </Typography>
                     <List component="nav">
                         {user.startWorkDate != null && (
@@ -98,15 +98,19 @@ export const UserInfoCard = ({user, faculties, isCurrentUser, saveUserInfo, allF
                 </CardContent>
                 {cardAction()}
             </Card>
-            <UserSettingsDialog
-                user={user}
-                handleClose={handleClose}
-                open={open}
-                saveUserInfo={saveUserInfo}
-                allFaculties={allFaculties}
-                faculties={faculties}
-                saveFaculties={saveFaculties}
-            />
+            {allFaculties && faculties && user && (
+                    <UserSettingsDialog
+                        user={user}
+                        handleClose={handleClose}
+                        open={open}
+                        saveUserInfo={saveUserInfo}
+                        allFaculties={allFaculties}
+                        faculties={faculties}
+                        saveFaculties={saveFaculties}
+                    />
+                )
+            }
+
         </React.Fragment>
 
     )

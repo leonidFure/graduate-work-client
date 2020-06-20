@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from "react"
 import axios from "axios"
-import {useHistory, useParams} from "react-router-dom";
+    import {useHistory, useParams} from "react-router-dom";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import {AlertContext} from "../context/notify/alertContext";
 import Grid from "@material-ui/core/Grid";
@@ -10,6 +10,9 @@ import {TimetableCard} from "../components/TimetableCard";
 import Link from "@material-ui/core/Link";
 import Typography from "@material-ui/core/Typography";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
+import {SubscriptionConfirm} from "../components/SubscriptionConfirm";
+import Box from "@material-ui/core/Box";
+import CircularProgress from "@material-ui/core/CircularProgress";
 
 const url = process.env.REACT_APP_SERVER_URL;
 
@@ -24,8 +27,7 @@ const useStyles = makeStyles(theme => ({
     chip: {
         margin: theme.spacing(0.5),
     },
-    avatar: {
-    },
+    avatar: {},
     section2: {
         margin: theme.spacing(2),
     },
@@ -43,7 +45,7 @@ const useStyles = makeStyles(theme => ({
         transform: 'rotate(180deg)',
     },
     breadcrumbs: {
-        marginBottom: theme.spacing(2)
+        marginBottom: theme.spacing(3.5)
     }
 }))
 
@@ -52,8 +54,10 @@ const authStr = 'Bearer '.concat(ACCESS_TOKEN);
 const rowsPerPage = 10
 
 export const CoursePage = () => {
-    const classes = useStyles()
     const history = useHistory()
+    const userId = localStorage.getItem('userId')
+
+    const classes = useStyles()
     const {id} = useParams()
 
     const [course, setCourse] = useState()
@@ -71,9 +75,15 @@ export const CoursePage = () => {
     const [emptyRows, setEmptyRows] = useState(0)
     const [page, setPage] = useState()
     const [open, setOpen] = useState(false);
+    const [subOpen, setSubOpen] = useState(false)
+
 
     const handleClickOpen = () => {
         setOpen(true);
+    };
+
+    const handleClickSubOpen = () => {
+        setSubOpen(true);
     };
 
     const handleClose = () => {
@@ -82,6 +92,18 @@ export const CoursePage = () => {
             .then(response => response.data)
             .then(data => {
                 setTeachers(data)
+            })
+            .catch(e => handleError(e))
+    };
+
+    const handleSubClose = () => {
+        setSubOpen(false);
+        subscribe()
+            .then(() =>{
+                fetchCourse()
+                    .then(response => response.data)
+                    .then(course => setCourse(course))
+                    .catch(e => handleError(e))
             })
             .catch(e => handleError(e))
     };
@@ -107,7 +129,7 @@ export const CoursePage = () => {
     }, [])
 
     useEffect(() => {
-        if(!course) return
+        if (!course) return
         fetchLessonPage(course.id)
             .then(response => response.data)
             .then(page => {
@@ -226,70 +248,102 @@ export const CoursePage = () => {
         setExpanded(!expanded);
     };
 
+    const subscribe = async () => {
+        if(!course.hasSubscription) {
+            await axios.post(`${url}/api/courses/subscribe`, {courseId: course.id}, {headers: {Authorization: authStr}})
+        } else {
+            await axios.post(`${url}/api/courses/unsubscribe`, {courseId: course.id}, {headers: {Authorization: authStr}})
+        }
+    }
+
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
 
-    if (!course) return <div>Курс не найден</div>
+    if (!course) return (
+        <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+        >
+            <CircularProgress className={classes.loader}/>
+        </Box>
+    )
+    const handleClick = () => {
+        history.push('/courses')
+    }
 
     return (
         <div>
-            <Breadcrumbs aria-label="breadcrumb" className={classes.breadcrumbs}>
-                <Link color="inherit" href="/" >
-                    Курсы
-                </Link>
-                <Typography color="textPrimary">Подготовка к экзамену по математике</Typography>
-            </Breadcrumbs>
             {course && course.educationProgram && (
-                <div>
-                    <Grid container spacing={6}>
-                        {user && (
-                            <Grid
-                                item
-                                xs={3}
-                                container
-                                direction={"column"}
-                                spacing={3}
-                            >
-                                <Grid item>
-                                    <CourseInfoCard
-                                        course={course}
-                                        user={user}
-                                        subject={subject}
-                                        expanded={expanded}
-                                        handleExpandClick={handleExpandClick}
-                                        startDateStr={startDateStr}
-                                        endDateStr={endDateStr}
-                                    />
+                <React.Fragment>
+                    <Breadcrumbs aria-label="breadcrumb" className={classes.breadcrumbs}>
+                        <Link color="inherit" href="/courses" onClick={handleClick}>
+                            Курсы
+                        </Link>
+                        <Typography color="textPrimary">{course.educationProgram.name}</Typography>
+                    </Breadcrumbs>
+                    <div>
+                        <Grid container spacing={5}>
+                            {user && (
+                                <Grid
+                                    item
+                                    xs={3}
+                                    container
+                                    direction={"column"}
+                                    spacing={3}
+                                >
+                                    <Grid item>
+                                        <CourseInfoCard
+                                            course={course}
+                                            user={user}
+                                            subject={subject}
+                                            expanded={expanded}
+                                            handleExpandClick={handleExpandClick}
+                                            startDateStr={startDateStr}
+                                            endDateStr={endDateStr}
+                                            handleSubscribe={handleClickSubOpen}
+                                            hasSubscription={course.hasSubscription}
+                                        />
+                                    </Grid>
+                                    <Grid item>
+                                        <TeachersCard
+                                            teachers={teachers}
+                                            courseId={course.id}
+                                            open={open}
+                                            handleClose={handleClose}
+                                            handleClickOpen={handleClickOpen}
+                                            managerId={course.creatorId}
+                                        />
+                                    </Grid>
                                 </Grid>
-                                <Grid item>
-                                    <TeachersCard
-                                        teachers={teachers}
-                                        courseId={course.id}
-                                        open={open}
-                                        handleClose={handleClose}
-                                        handleClickOpen={handleClickOpen}
-                                    />
-                                </Grid>
+                            )}
+                            <Grid item xs={9}>
+                                <TimetableCard
+                                    handleChangeDate={handleChangeDate}
+                                    lessons={lessons}
+                                    lessonPage={lessonPage}
+                                    dictionary={dictionary}
+                                    emptyRows={emptyRows}
+                                    lessonsCount={lessonsCount}
+                                    rowsPerPage={rowsPerPage}
+                                    page={page}
+                                    courses={[course]}
+                                    handleChangePage={handleChangePage}
+                                />
                             </Grid>
-                        )}
-                        <Grid item xs={9}>
-                            <TimetableCard
-                                handleChangeDate={handleChangeDate}
-                                lessons={lessons}
-                                lessonPage={lessonPage}
-                                dictionary={dictionary}
-                                emptyRows={emptyRows}
-                                lessonsCount={lessonsCount}
-                                rowsPerPage={rowsPerPage}
-                                page={page}
-                                courses={[course]}
-                                handleChangePage={handleChangePage}
-                            />
                         </Grid>
-                    </Grid>
 
-                </div>
+                    </div>
+                    <SubscriptionConfirm
+                        handleClose={handleSubClose}
+                        handleSubscribe={handleSubClose}
+                        courseName={course.educationProgram.name}
+                        isSubscribe={!course.hasSubscription}
+                        open={subOpen}
+                    />
+                </React.Fragment>
+
             )
             }
         </div>

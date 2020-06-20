@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -83,7 +83,7 @@ export const LoginPage = () => {
                 localStorage.setItem('role', response.data.role)
                 history.entries = [];
                 history.index = -1;
-                history.push(`/courses`);
+                history.push(`/users/${response.data.userId}`);
             })
             .catch(e => handleError(e.response.data))
     }
@@ -116,6 +116,8 @@ export const LoginPage = () => {
         setPassword(e.target.value);
         setPasswordValid(true)
     }
+
+
 
     return (
         <Container component="main" maxWidth="xs">

@@ -9,6 +9,7 @@ import Grid from "@material-ui/core/Grid";
 import {AlertContext} from "../../context/notify/alertContext";
 import {KeyboardDatePicker} from "@material-ui/pickers";
 import Autocomplete from "@material-ui/lab/Autocomplete";
+import {isAdmin, isTeacher} from "../../roles";
 
 export const UserSettingsDialog = ({user = {}, open, handleClose, saveUserInfo, allFaculties, faculties, saveFaculties}) => {
     const [firstName, setFirstName] = useState(user.firstName)
@@ -20,10 +21,17 @@ export const UserSettingsDialog = ({user = {}, open, handleClose, saveUserInfo, 
     const [loginValid, setLoginValid] = useState(true)
     const [firstNameValid, setFirstNameValid] = useState(true)
     const [lastNameValid, setLastNameValid] = useState(true)
-    const [curFacultiesIds, setCurFacultiesIds] = useState(faculties? faculties.map(f => f.id) : [])
+    const [defaultValue, setDefaultValue] = useState(faculties)
+    const [curFaculties, setCurFaculties] = useState(defaultValue)
     const alert = useContext(AlertContext)
 
-    const facultiesIds =faculties? faculties.map(f => f.id) : []
+
+    const getDefaultValues = () => {
+        if(!allFaculties) return []
+        if(!defaultValue) return []
+        const defaultValuesIds = defaultValue.map(faculty => faculty.id);
+        return
+    }
 
     const emailCheck = login => {
         if (!login.trim()) return false
@@ -51,9 +59,9 @@ export const UserSettingsDialog = ({user = {}, open, handleClose, saveUserInfo, 
 
     const handleChangeStartWorkDate = e => {
         const date = e
-        const ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
-        const mo = new Intl.DateTimeFormat('en', { month: '2-digit' }).format(date)
-        const da = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(date)
+        const ye = new Intl.DateTimeFormat('en', {year: 'numeric'}).format(date)
+        const mo = new Intl.DateTimeFormat('en', {month: '2-digit'}).format(date)
+        const da = new Intl.DateTimeFormat('en', {day: '2-digit'}).format(date)
         setStartWorkDate(`${ye}-${mo}-${da}`)
     }
 
@@ -62,8 +70,7 @@ export const UserSettingsDialog = ({user = {}, open, handleClose, saveUserInfo, 
     }
 
     const handleFacultiesChange = (e, faculties) => {
-        const ids = faculties? faculties.map(f => f.id) : []
-        setCurFacultiesIds(ids)
+        setCurFaculties(faculties)
     }
 
     const handleSave = () => {
@@ -87,14 +94,15 @@ export const UserSettingsDialog = ({user = {}, open, handleClose, saveUserInfo, 
         if (!paramsValid) {
             alert.show('Поля заполнены некоректно', 'error')
         } else {
-            user.firstName = firstName? firstName : null
-            user.lastName = lastName? lastName :  null
-            user.patronymic = patronymic? patronymic : null
-            user.email = email? email : null
-            user.info = info? info : null
-            user.startWorkDate = startWorkDate? startWorkDate : null
+            user.firstName = firstName ? firstName : null
+            user.lastName = lastName ? lastName : null
+            user.patronymic = patronymic ? patronymic : null
+            user.email = email ? email : null
+            user.info = info ? info : null
+            user.startWorkDate = startWorkDate ? startWorkDate : null
+            setDefaultValue(curFaculties)
             saveUserInfo(user)
-            const list = curFacultiesIds.map(id => ({teacherId: user.id, facultyId: id}));
+            const list = curFaculties.map(faculty => ({teacherId: user.id, facultyId: faculty.id}));
             saveFaculties({list}, user.id)
             handleClose()
         }
@@ -160,36 +168,42 @@ export const UserSettingsDialog = ({user = {}, open, handleClose, saveUserInfo, 
                             onChange={handleChangeEmail}
                         />
                     </Grid>
-                    <Grid item xs={12}>
-                        {allFaculties && (
-                            <Autocomplete
-                                id="combo-box-demo"
-                                multiple
-                                options={allFaculties}
-                                getOptionLabel={(option) => option.abbr}
-                                defaultValue={allFaculties.filter(faculty => facultiesIds.includes(faculty.id))}
-                                onChange={handleFacultiesChange}
-                                renderInput={(params) => <TextField fullWidth required {...params} label="Институт" variant="outlined" />}
-                            />
-                        )}
+                    {(isTeacher() || isAdmin()) && (
+                        <React.Fragment>
+                            <Grid item xs={12}>
+                                {allFaculties && (
+                                    <Autocomplete
+                                        id="combo-box-demo"
+                                        multiple
+                                        options={allFaculties}
+                                        getOptionLabel={(option) => option.abbr}
+                                        defaultValue={allFaculties.filter(faculty => defaultValue.map(faculty => faculty.id).includes(faculty.id))}
+                                        onChange={handleFacultiesChange}
+                                        renderInput={(params) => <TextField fullWidth required {...params}
+                                                                            label="Институт" variant="outlined"/>}
+                                    />
+                                )}
 
-                    </Grid>
-                    <Grid item xs={12}>
-                        <KeyboardDatePicker
-                            autoOk
-                            fullWidth
-                            disableToolbar
-                            margin="normal"
-                            inputVariant="outlined"
-                            label="Дата начала работы"
-                            format="dd MMM yyyy г."
-                            value={startWorkDate}
-                            onChange={handleChangeStartWorkDate}
-                            KeyboardButtonProps={{
-                                'aria-label': 'change date',
-                            }}
-                        />
-                    </Grid>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <KeyboardDatePicker
+                                    autoOk
+                                    fullWidth
+                                    disableToolbar
+                                    margin="normal"
+                                    inputVariant="outlined"
+                                    label="Дата начала работы"
+                                    format="dd MMM yyyy г."
+                                    value={startWorkDate}
+                                    onChange={handleChangeStartWorkDate}
+                                    KeyboardButtonProps={{
+                                        'aria-label': 'change date',
+                                    }}
+                                />
+                            </Grid>
+                        </React.Fragment>
+                    )}
+
                     <Grid item xs={12}>
                         <TextField
                             variant="outlined"

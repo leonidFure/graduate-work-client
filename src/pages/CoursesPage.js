@@ -21,6 +21,8 @@ import Tooltip from "@material-ui/core/Tooltip";
 import Fab from "@material-ui/core/Fab";
 import {CourseAddDialog} from "../components/CourseAddDialog";
 import {isStudent} from "../roles";
+import Box from "@material-ui/core/Box";
+import CircularProgress from "@material-ui/core/CircularProgress";
 
 const url = process.env.REACT_APP_SERVER_URL;
 
@@ -90,6 +92,7 @@ function useQuery() {
 }
 
 export const CoursesPage = () => {
+
     const ACCESS_TOKEN = localStorage.getItem('accessToken')
     const authStr = 'Bearer '.concat(ACCESS_TOKEN);
     const query = useQuery()
@@ -103,7 +106,7 @@ export const CoursesPage = () => {
     const [courseNameFilter, setCourseNameFilter] = useState('')
     const [curCourseNameFilter, setCurCourseNameFilter] = useState('')
     const [currentSortField, setCurrentSortField] = useState(CREATION_DATE)
-    const [currentSortType, setCurrentSortType] = useState(ASC)
+    const [currentSortType, setCurrentSortType] = useState(DESC)
     const [open, setOpen] = useState(false);
     const [allProgram, setAllProgram] = useState([]);
 
@@ -194,6 +197,11 @@ export const CoursesPage = () => {
         return await axios.post(`${url}/api/courses`, course, {headers: {Authorization: authStr}})
     }
 
+    const saveTimetables = async timetables => {
+
+        return await axios.post(`${url}/api/timetables`, {timetables}, {headers: {Authorization: authStr}})
+    }
+
     const handleError = error => {
         let code = error.response.data.status
         if (code === 403 || code === 401)
@@ -223,23 +231,18 @@ export const CoursesPage = () => {
         setCourseNameFilter(e.target.value)
     }
 
-    const handleSaveCourseAndTimetable = (course) => {
+    const handleSaveCourseAndTimetable = (course, timetables) => {
         saveCourse(course)
-            .then(() => {
-                setPageNum(1)
-                setCurCourseNameFilter('')
-                setCurrentSortField(CREATION_DATE)
-                setCurrentSortType(ASC)
-                fetchCoursePage()
-                    .then(response => {
-                        setCoursePage(response.data.content)
-                        setCount(response.data.totalCount)
-                        setPageCount(Math.ceil(response.data.totalCount / pageSize))
-                    })
-                    .catch(e => {
-                        handleError(e)
-                    })
+            .then(response => response.data)
+            .then(course => {
+                timetables.forEach(t => {
+                    t.courseId = course.id
+                })
+                saveTimetables(timetables)
+                    .catch(e => handleError(e))
+                history.push(`/courses/${course.id}`)
             })
+            .catch(e => handleError(e))
     }
 
     const resolveSortField = (sortField) => {
@@ -256,15 +259,19 @@ export const CoursesPage = () => {
     }
 
     const resolveSortType = (sortType) => {
-        if (sortType === ASC) return 'сначала новые'
+        if (sortType === DESC) return 'сначала новые'
         else return 'сначала старые'
     };
 
-    if (!coursePage) {
-        return (
-            <div>Курсов нет(((</div>
-        )
-    }
+    if (!coursePage) return (
+        <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+        >
+            <CircularProgress className={classes.loader}/>
+        </Box>
+    )
 
     const getSubjectName = (id) => {
         const find = subjectList.find(sub => sub.id === id)
@@ -324,7 +331,7 @@ export const CoursesPage = () => {
                 </div>
                 <div style={{marginBottom: theme.spacing(1)}}>
                     {count && pageNum && pageCount && (
-                        <Typography variant='body2' color="textSecondary">
+                        <Typography  color="textSecondary">
                             {`${count} курсов найдено. Страница ${pageNum} из ${pageCount}`}
                         </Typography>
                     )}
@@ -345,7 +352,7 @@ export const CoursesPage = () => {
                                             image={`${url}${course.imageUrl}`}
                                             alternateImage={`${url}${subjectUrl}${course.educationProgram.subjectId}`}
                                             rating={course.rating}
-                                            ratingCount={course.ratingCount}
+                                            courseCount={course.subCount}
                                             subjectName={getSubjectName(course.educationProgram.subjectId)}
                                             hasSubscription={course.hasSubscription}
                                             courseId={course.id}

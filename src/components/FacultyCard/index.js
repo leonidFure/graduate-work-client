@@ -13,6 +13,7 @@ import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import Avatar from "@material-ui/core/Avatar";
 import ListItemText from "@material-ui/core/ListItemText";
+import {isAdmin} from "../../roles";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -69,6 +70,8 @@ export const FacultyCard = ({faculty}) => {
 
             <CardActions>
                 <Button className={classes.button} size={"small"}>Перейти к преподавателям</Button>
+                {isAdmin() && (<Button size={"small"}>Редактировать</Button>)}
+
             </CardActions>
         </Card>
     )

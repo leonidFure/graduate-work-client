@@ -7,15 +7,26 @@ import {isAdmin, isTeacher} from '../roles'
 import Grid from "@material-ui/core/Grid";
 import {EducationProgramsCard} from "../components/EducationProgramsCard";
 import {TimetableCard} from "../components/TimetableCard";
+import Link from "@material-ui/core/Link";
+import Typography from "@material-ui/core/Typography";
+import Breadcrumbs from "@material-ui/core/Breadcrumbs";
+import makeStyles from "@material-ui/core/styles/makeStyles";
 
-const url = process.env.REACT_APP_SERVER_URL;
-const ACCESS_TOKEN = localStorage.getItem('accessToken')
-const CURRENT_USER_ID = localStorage.getItem('currentUserId')
-const authStr = 'Bearer '.concat(ACCESS_TOKEN);
-const educationProgramCount = 3
+
+
+const useStyles = makeStyles(theme => ({
+    breadcrumbs: {
+        marginBottom: theme.spacing(3.5)
+    },
+}))
 
 const rowsPerPage = 10
 export const UserPage = () => {
+    const classes = useStyles()
+    const url = process.env.REACT_APP_SERVER_URL;
+    const ACCESS_TOKEN = localStorage.getItem('accessToken')
+    const CURRENT_USER_ID = localStorage.getItem('currentUserId')
+    const authStr = 'Bearer '.concat(ACCESS_TOKEN);
     const {id} = useParams()
     const history = useHistory()
     const alert = useContext(AlertContext)
@@ -23,8 +34,6 @@ export const UserPage = () => {
     const [user, setUser] = useState()
     const [faculties, setFaculties] = useState()
     const [allFaculties, setAllFaculties] = useState()
-    const [educationPrograms, setEducationPrograms] = useState()
-    const [educationProgramsCount, setEducationProgramsCount] = useState()
     const [lessons, setLessons] = useState()
     const [lessonPage, setLessonPage] = useState()
     const [lessonsCount, setLessonsCount] = useState(0)
@@ -50,25 +59,29 @@ export const UserPage = () => {
     }, [])
 
     useEffect(() => {
-        if (user && (isAdmin() || isTeacher())) {
-            fetchFaculty(id)
-                .then(response => response.data)
-                .then(faculties => setFaculties(faculties))
-                .catch(e => handleError(e))
-            fetchEducationPrograms(id)
-                .then(response => response.data)
-                .then(page => {
-                    setEducationPrograms(page.content)
-                    setEducationProgramsCount(page.totalCount)
-                })
-                .catch(e => handleError(e))
-            fetchCourseIdsByTeacherId(id)
-                .then(response => response.data)
-                .then(courses => {
-                    setCourses(courses)
-                    setCourseIds(courses.map(course => course.id))
-                })
-                .catch(e => handleError(e))
+        if (user) {
+            if (isAdmin() || isTeacher()) {
+                fetchFaculty(id)
+                    .then(response => response.data)
+                    .then(faculties => setFaculties(faculties))
+                    .catch(e => handleError(e))
+                fetchCourseIdsByTeacherId(id)
+                    .then(response => response.data)
+                    .then(courses => {
+                        setCourses(courses)
+                        setCourseIds(courses.map(course => course.id))
+                    })
+                    .catch(e => handleError(e))
+            } else {
+                fetchCourseIdsBySubId(id)
+                    .then(response => response.data)
+                    .then(courses => {
+                        setCourses(courses)
+                        setCourseIds(courses.map(course => course.id))
+                    })
+                    .catch(e => handleError(e))
+            }
+
         }
         // eslint-disable-next-line
     }, [user])
@@ -82,6 +95,16 @@ export const UserPage = () => {
                     setLessonsCount(page.totalCount)
                     setEmptyRows(rowsPerPage - page.content.length)
                 })
+                .catch(e => handleError(e))
+            const date = new Date()
+            const startDateString = new Date(date.getFullYear(), date.getMonth(), 2).toJSON()
+            const endDateString = new Date(date.getFullYear(), date.getMonth() + 1, 1).toJSON()
+            const startDate = startDateString.slice(0, startDateString.lastIndexOf('T'))
+            const endDate = endDateString.slice(0, endDateString.lastIndexOf('T'))
+            fetchLessons(courseIds, startDate, endDate)
+                .then(response => response.data)
+                .then(lessonList => setLessons(lessonList))
+                .catch(e => handleError(e))
         }
         // eslint-disable-next-line
     }, [page, courseIds])
@@ -101,15 +124,14 @@ export const UserPage = () => {
         return await axios.get(`${url}/api/faculties/list`, {headers: {Authorization: authStr}})
     }
 
-    // получение программы обучения
-    const fetchEducationPrograms = async (id) => {
-        const request = {pageNum: 1, pageSize: educationProgramCount, teacherId: id}
-        return await axios.post(`${url}/api/education-programs/page`, request, {headers: {Authorization: authStr}})
-    }
-
     // получение данных курса по id преподавателя
     const fetchCourseIdsByTeacherId = async (id) => {
         return await axios.get(`${url}/api/courses/teacher`, {headers: {Authorization: authStr}, params: {id}})
+    }
+
+    // получение данных курса по id преподавателя
+    const fetchCourseIdsBySubId = async (id) => {
+        return await axios.get(`${url}/api/courses/subscriber/list`, {headers: {Authorization: authStr}, params: {id}})
     }
 
     const fetchLessons = async (courseIds, dateFrom, dateTo) => {
@@ -177,45 +199,56 @@ export const UserPage = () => {
     }
 
     return (
-        <Grid container spacing={6}>
-            <Grid
-                item
-                xs={3}
-                container
-                direction={"column"}
-                spacing={4}
-            >
-                <Grid item>
-                    <UserInfoCard
-                        user={user}
-                        faculties={faculties}
-                        isCurrentUser={checkIsCurrentUser()}
-                        saveUserInfo={handleSaveUser}
-                        allFaculties={allFaculties}
-                        saveFaculties={handleSaveFaculties}
-                    />
+        <React.Fragment>
+            {user && (
+                <Breadcrumbs aria-label="breadcrumb" className={classes.breadcrumbs}>
+                    <Link color="inherit" href="/users">
+                        Пользователи
+                    </Link>
+                    <Typography color="textPrimary">{`${user.lastName} ${user.firstName} ${!user.patronymic ? '' : user.patronymic}`}</Typography>
+                </Breadcrumbs>
+            )}
+
+            <Grid container spacing={5}>
+                <Grid
+                    item
+                    xs={3}
+                    container
+                    direction={"column"}
+                    spacing={4}
+                >
+                    <Grid item>
+                        <UserInfoCard
+                            user={user}
+                            faculties={faculties}
+                            isCurrentUser={checkIsCurrentUser()}
+                            saveUserInfo={handleSaveUser}
+                            allFaculties={allFaculties}
+                            saveFaculties={handleSaveFaculties}
+                        />
+                    </Grid>
+                    <Grid item>
+                        <EducationProgramsCard
+                            courses={courses}
+                        />
+                    </Grid>
                 </Grid>
-                <Grid item>
-                    <EducationProgramsCard
-                        educationPrograms={educationPrograms}
-                        educationsProgramsCount={educationProgramsCount}
+                <Grid item xs={9}>
+                    <TimetableCard
+                        handleChangeDate={handleChangeDate}
+                        lessons={lessons}
+                        lessonPage={lessonPage}
+                        dictionary={dictionary}
+                        emptyRows={emptyRows}
+                        lessonsCount={lessonsCount}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        courses={courses}
+                        handleChangePage={handleChangePage}
                     />
                 </Grid>
             </Grid>
-            <Grid item xs={9}>
-                <TimetableCard
-                    handleChangeDate={handleChangeDate}
-                    lessons={lessons}
-                    lessonPage={lessonPage}
-                    dictionary={dictionary}
-                    emptyRows={emptyRows}
-                    lessonsCount={lessonsCount}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    courses={courses}
-                    handleChangePage={handleChangePage}
-                />
-            </Grid>
-        </Grid>
+        </React.Fragment>
+
     );
 }

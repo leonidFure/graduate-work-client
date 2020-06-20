@@ -23,6 +23,7 @@ import {AlertContext} from "../../context/notify/alertContext";
 import Snackbar from "@material-ui/core/Snackbar";
 import useTheme from "@material-ui/core/styles/useTheme";
 import {SubscriptionConfirm} from "../SubscriptionConfirm";
+import {isStudent} from "../../roles";
 
 
 const useStyles = makeStyles(theme => ({
@@ -50,7 +51,7 @@ const useStyles = makeStyles(theme => ({
 const url = process.env.REACT_APP_SERVER_URL
 
 
-export const CourseCard = ({name, startDate, endDate, courseStatus, courseStatusStr, description, image, rating, ratingCount, subjectName, hasSubscription, courseId}) => {
+export const CourseCard = ({name, startDate, endDate, courseStatus, courseStatusStr, description, image, rating, courseCount, subjectName, hasSubscription, courseId}) => {
     const avatarStr = subjectName.charAt(0)
     const startDateStr = new Date(startDate).toLocaleDateString('ru', {day: 'numeric', month: 'short'})
     const endDateStr = new Date(endDate).toLocaleDateString('ru', {day: 'numeric', month: 'short'})
@@ -172,7 +173,7 @@ export const CourseCard = ({name, startDate, endDate, courseStatus, courseStatus
             <Card className={classes.root}>
                 <CardHeader
                     avatar={
-                        <Avatar aria-label="recipe" >
+                        <Avatar aria-label="recipe">
                             {avatarStr}
                         </Avatar>
                     }
@@ -229,7 +230,7 @@ export const CourseCard = ({name, startDate, endDate, courseStatus, courseStatus
                         <Grid item style={{textAlign: "center"}}>
                             <Tooltip title={rating}>
                                 <Typography variant='h6'>
-                                    {rating}
+                                    {courseCount? courseCount: 0}
                                 </Typography>
                             </Tooltip>
                             <Typography variant='caption' color={"textSecondary"}>
@@ -239,20 +240,17 @@ export const CourseCard = ({name, startDate, endDate, courseStatus, courseStatus
                     </Grid>
                 </CardContent>
                 <CardActions disableSpacing style={{paddingTop: 0}}>
-                    <Tooltip title='Поделиться'>
-                        <IconButton>
-                            <ShareIcon fontSize={"small"}/>
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip title={hasSub ? 'Отписаться' : 'Подписаться'}>
-                        <IconButton onClick={handleClickSubOpen}>
-                            {hasSub ?
-                                <NotificationsIcon fontSize={"small"}/> :
-                                <NotificationsNoneIcon fontSize={"small"}/>
-                            }
+                    {isStudent() && (
+                        <Tooltip title={hasSub ? 'Отписаться' : 'Подписаться'}>
+                            <IconButton onClick={handleClickSubOpen}>
+                                {hasSub ?
+                                    <NotificationsIcon fontSize={"small"}/> :
+                                    <NotificationsNoneIcon fontSize={"small"}/>
+                                }
 
-                        </IconButton>
-                    </Tooltip>
+                            </IconButton>
+                        </Tooltip>
+                    )}
                     <Button onClick={handleOpenCourse}>открыть</Button>
                 </CardActions>
                 <Snackbar open={open} autoHideDuration={2000} onClose={handleClose}

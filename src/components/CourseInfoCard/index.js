@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import CardMedia from "@material-ui/core/CardMedia";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
@@ -18,6 +18,10 @@ import ImportContactsIcon from "@material-ui/icons/ImportContacts";
 import DateRangeIcon from "@material-ui/icons/DateRange";
 import Card from "@material-ui/core/Card";
 import makeStyles from "@material-ui/core/styles/makeStyles";
+import axios from "axios";
+import {useHistory} from "react-router-dom";
+import {SubscriptionConfirm} from "../SubscriptionConfirm";
+import {isAdmin, isStudent, isTeacher} from "../../roles";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -42,76 +46,81 @@ const useStyles = makeStyles(theme => ({
 
 const url = process.env.REACT_APP_SERVER_URL;
 
+export const CourseInfoCard = ({course, user, subject, expanded, handleExpandClick, startDateStr, endDateStr, handleSubscribe, hasSubscription}) => {
 
-export const CourseInfoCard = ({course, user, subject, expanded, handleExpandClick, startDateStr, endDateStr}) => {
     const classes = useStyles()
     return (
-        <Card>
-            <CardMedia
-                className={classes.cardMedia}
-                image={`${url}${course.imageUrl}`}
-                title={course.name}
-            />
-            <CardContent>
-                <Typography variant="h5" component="h5"
-                            className={classes.headerCard}>
-                    {course.educationProgram.name}
-                </Typography>
-                <Typography color="textSecondary" variant="body2"
-                            className={classes.headerCard}>
-                    {course.educationProgram.description}
-                </Typography>
-
-            </CardContent>
-            <CardActions disableSpacing>
-                <Button>Подписаться</Button>
-                <IconButton
-                    className={clsx(classes.expand, {
-                        [classes.expandOpen]: expanded,
-                    })}
-                    onClick={handleExpandClick}
-                    aria-expanded={expanded}
-                    aria-label="show more"
-                >
-                    <ExpandMoreIcon/>
-                </IconButton>
-            </CardActions>
-            <Collapse in={expanded} timeout="auto" unmountOnExit>
+        <React.Fragment>
+            <Card>
+                <CardMedia
+                    className={classes.cardMedia}
+                    image={`${url}${course.imageUrl}`}
+                    title={course.name}
+                />
                 <CardContent>
-                    <List component="nav" className={classes.root}>
-                        <ListItem button>
-                            <ListItemAvatar>
-                                <Avatar className={classes.avatar}>
-                                    <PersonIcon/>
-                                </Avatar>
-                            </ListItemAvatar>
-                            <ListItemText secondary="Создатель"
-                                          primary={`${user.lastName} ${user.firstName} ${user.patronymic == null ? '' : user.patronymic}`}
-                            />
-                        </ListItem>
-                        {subject && (
+                    <Typography variant="h5" component="h5"
+                                className={classes.headerCard}>
+                        {course.educationProgram.name}
+                    </Typography>
+                    <Typography color="textSecondary" variant="body2"
+                                className={classes.headerCard}>
+                        {course.educationProgram.description}
+                    </Typography>
+
+                </CardContent>
+                <CardActions disableSpacing>
+                    {isStudent() && (
+                        <Button onClick={handleSubscribe}>{!hasSubscription? 'Подписаться' : 'Отписаться'}</Button>
+                    )}
+                    <IconButton
+                        className={clsx(classes.expand, {
+                            [classes.expandOpen]: expanded,
+                        })}
+                        onClick={handleExpandClick}
+                        aria-expanded={expanded}
+                        aria-label="show more"
+                    >
+                        <ExpandMoreIcon/>
+                    </IconButton>
+                </CardActions>
+                <Collapse in={expanded} timeout="auto" unmountOnExit>
+                    <CardContent>
+                        <List component="nav" className={classes.root}>
+                            <ListItem button>
+                                <ListItemAvatar>
+                                    <Avatar className={classes.avatar}>
+                                        <PersonIcon/>
+                                    </Avatar>
+                                </ListItemAvatar>
+                                <ListItemText secondary="Создатель"
+                                              primary={`${user.lastName} ${user.firstName} ${user.patronymic == null ? '' : user.patronymic}`}
+                                />
+                            </ListItem>
+                            {subject && (
+                                <ListItem>
+                                    <ListItemAvatar>
+                                        <Avatar className={classes.avatar}>
+                                            <ImportContactsIcon/>
+                                        </Avatar>
+                                    </ListItemAvatar>
+                                    <ListItemText secondary="Предмет"
+                                                  primary={subject.name}/>
+                                </ListItem>
+                            )}
                             <ListItem>
                                 <ListItemAvatar>
                                     <Avatar className={classes.avatar}>
-                                        <ImportContactsIcon/>
+                                        <DateRangeIcon/>
                                     </Avatar>
                                 </ListItemAvatar>
-                                <ListItemText secondary="Предмет"
-                                              primary={subject.name}/>
+                                <ListItemText secondary="Период проведения курса"
+                                              primary={`${startDateStr} - ${endDateStr}`}/>
                             </ListItem>
-                        )}
-                        <ListItem>
-                            <ListItemAvatar>
-                                <Avatar className={classes.avatar}>
-                                    <DateRangeIcon/>
-                                </Avatar>
-                            </ListItemAvatar>
-                            <ListItemText secondary="Период проведения курса"
-                                          primary={`${startDateStr} - ${endDateStr}`}/>
-                        </ListItem>
-                    </List>
-                </CardContent>
-            </Collapse>
-        </Card>
+                        </List>
+                    </CardContent>
+                </Collapse>
+            </Card>
+        </React.Fragment>
+
     )
 }

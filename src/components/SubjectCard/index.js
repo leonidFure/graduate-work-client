@@ -6,6 +6,7 @@ import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import Chip from "@material-ui/core/Chip";
 import Button from "@material-ui/core/Button";
+import {isAdmin} from "../../roles";
 
 
 const useStyles = makeStyles(theme => ({
@@ -56,7 +57,7 @@ export const SubjectCard = ({subject, subjectTypeStr}) => {
             </CardContent>
             <CardActions>
                 <Button href={`/courses?subject_id=${subject.id}`}>Курсы</Button>
-                <Button>Учебные направления</Button>
+                {isAdmin() && (<Button>Редактировать</Button>)}
             </CardActions>
         </Card>
     )

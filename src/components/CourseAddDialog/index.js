@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useContext, useState} from "react";
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
@@ -6,36 +6,80 @@ import DialogContent from "@material-ui/core/DialogContent";
 import TextField from "@material-ui/core/TextField";
 import DialogActions from "@material-ui/core/DialogActions";
 import Grid from "@material-ui/core/Grid";
-import {KeyboardDatePicker} from "@material-ui/pickers";
+import {KeyboardDatePicker, KeyboardTimePicker} from "@material-ui/pickers";
 import MaterialTable from "material-table";
 import Autocomplete from "@material-ui/lab/Autocomplete";
+import {AlertContext} from "../../context/notify/alertContext";
 
 export const CourseAddDialog = ({open, handleClose, allEducationPrograms, saveCourseAndTimetables}) => {
     const getDate = () => {
         const date = new Date()
-        const ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
-        const mo = new Intl.DateTimeFormat('en', { month: '2-digit' }).format(date)
-        const da = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(date)
+        const ye = new Intl.DateTimeFormat('en', {year: 'numeric'}).format(date)
+        const mo = new Intl.DateTimeFormat('en', {month: '2-digit'}).format(date)
+        const da = new Intl.DateTimeFormat('en', {day: '2-digit'}).format(date)
         return `${ye}-${mo}-${da}`
     }
     const [startDate, setStartDate] = useState(getDate())
     const [endDate, setEndDate] = useState(getDate())
     const [educationProgram, setEducationProgram] = useState()
+    const [state, setState] = React.useState({
+            columns: [
+                {
+                    title: 'День недели',
+                    field: 'dayOfWeek',
+                    lookup: {
+                        'MONDAY': 'ПН',
+                        'TUESDAY': 'ВТ',
+                        'WEDNESDAY': 'СР',
+                        'THURSDAY': 'ЧТ',
+                        'FRIDAY': 'ПТ',
+                        'SATURDAY': 'СБ',
+                        'SUNDAY': 'ВС'
+                    }
+                },
+                {
+                    title: 'Время начала',
+                    field: 'startTime',
+                },
+                {title: 'Время окончания', field: 'endTime'},
+                {
+                    title: 'Периодичность',
+                    field: 'type',
+                    lookup: {
+                        'EVEN': 'Четные недели',
+                        'ODD': 'Нечетные недели',
+                        'EVERY_WEEK': 'Каждая неделя'
+                    }
+                },
+
+
+            ],
+            data: [
+                {
+                    dayOfWeek: 'SUNDAY',
+                    startTime: '11:30',
+                    endTime: '11:30',
+                    type: 'ODD'
+                }
+            ]
+        }
+    )
+    const alert = useContext(AlertContext)
 
 
     const handleChangeStartDate = e => {
         const date = e
-        const ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
-        const mo = new Intl.DateTimeFormat('en', { month: '2-digit' }).format(date)
-        const da = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(date)
+        const ye = new Intl.DateTimeFormat('en', {year: 'numeric'}).format(date)
+        const mo = new Intl.DateTimeFormat('en', {month: '2-digit'}).format(date)
+        const da = new Intl.DateTimeFormat('en', {day: '2-digit'}).format(date)
         setStartDate(`${ye}-${mo}-${da}`)
     }
 
     const handleChangeEndDate = e => {
         const date = e
-        const ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
-        const mo = new Intl.DateTimeFormat('en', { month: '2-digit' }).format(date)
-        const da = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(date)
+        const ye = new Intl.DateTimeFormat('en', {year: 'numeric'}).format(date)
+        const mo = new Intl.DateTimeFormat('en', {month: '2-digit'}).format(date)
+        const da = new Intl.DateTimeFormat('en', {day: '2-digit'}).format(date)
         setEndDate(`${ye}-${mo}-${da}`)
     }
     const handleChangeEducationProgram = (e, educationProgram) => {
@@ -45,7 +89,7 @@ export const CourseAddDialog = ({open, handleClose, allEducationPrograms, saveCo
     const save = () => {
         let paramsValid = true
 
-        if(startDate >= endDate)
+        if (startDate >= endDate)
             paramsValid = false
 
         if (!educationProgram) {
@@ -59,7 +103,7 @@ export const CourseAddDialog = ({open, handleClose, allEducationPrograms, saveCo
             course.startDate = startDate
             course.endDate = endDate
             course.educationProgramId = educationProgram.id
-            saveCourseAndTimetables(course)
+            saveCourseAndTimetables(course, state.data)
             handleClose()
         }
     }
@@ -84,7 +128,8 @@ export const CourseAddDialog = ({open, handleClose, allEducationPrograms, saveCo
                                     options={allEducationPrograms}
                                     getOptionLabel={(option) => option.name}
                                     onChange={handleChangeEducationProgram}
-                                    renderInput={(params) => <TextField {...params} label="Программа обучения" variant="outlined" />}
+                                    renderInput={(params) => <TextField {...params} label="Программа обучения"
+                                                                        variant="outlined"/>}
                                 />
                             )}
                         </Grid>
@@ -122,7 +167,7 @@ export const CourseAddDialog = ({open, handleClose, allEducationPrograms, saveCo
                         />
                     </Grid>
                     <Grid item xs={12}>
-                        <MaterialTableDemo/>
+                        <MaterialTableDemo state={state} setState={setState}/>
                     </Grid>
                 </Grid>
             </DialogContent>
@@ -139,19 +184,7 @@ export const CourseAddDialog = ({open, handleClose, allEducationPrograms, saveCo
 }
 
 
-export default function MaterialTableDemo() {
-    const [state, setState] = React.useState({
-        columns: [
-            { title: 'День недели', field: 'day' },
-            { title: 'Время начала', field: 'startTime' },
-            { title: 'Время окончания', field: 'endTime' },
-            { title: 'Периодичность', field: 'type' },
-
-        ],
-        data: [
-            { day: 'ПН', startTime: '10:00', endTime: '11:30', type: 'Четные недели' },
-        ],
-    });
+const MaterialTableDemo = ({state, setState}) => {
 
     return (
         <MaterialTable
@@ -169,7 +202,7 @@ export default function MaterialTableDemo() {
                             setState((prevState) => {
                                 const data = [...prevState.data];
                                 data.push(newData);
-                                return { ...prevState, data };
+                                return {...prevState, data};
                             });
                         }, 600);
                     }),
@@ -181,7 +214,7 @@ export default function MaterialTableDemo() {
                                 setState((prevState) => {
                                     const data = [...prevState.data];
                                     data[data.indexOf(oldData)] = newData;
-                                    return { ...prevState, data };
+                                    return {...prevState, data};
                                 });
                             }
                         }, 600);
@@ -193,7 +226,7 @@ export default function MaterialTableDemo() {
                             setState((prevState) => {
                                 const data = [...prevState.data];
                                 data.splice(data.indexOf(oldData), 1);
-                                return { ...prevState, data };
+                                return {...prevState, data};
                             });
                         }, 600);
                     }),

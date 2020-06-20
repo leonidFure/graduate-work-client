@@ -74,7 +74,7 @@ export const UsersPage = () => {
     const [userTypeFilter, setUserTypeFilter] = useState('ALL')
     const [open, setOpen] = useState(false);
 
-    const userTypes = {ALL: 'Все', TEACHER: 'Преподаватели', STUDENT: 'Абитуриенты', ADMIN: 'Администраторы'}
+    const userTypes = isAdmin()? {ALL: 'Все', TEACHER: 'Преподаватели', STUDENT: 'Абитуриенты',  ADMIN: 'Администраторы'} : {ALL: 'Все', TEACHER: 'Преподаватели', STUDENT: 'Абитуриенты'}
     const pageSize = 16
 
     useEffect(() => {
@@ -202,7 +202,7 @@ export const UsersPage = () => {
                 </Grid>
                 <div style={{marginBottom: theme.spacing(1)}}>
                     {count && pageNum && pageCount && (
-                        <Typography variant='body2' color="textSecondary">
+                        <Typography color="textSecondary">
                             {`${count} пользователей найдено. Страница ${pageNum} из ${pageCount}`}
                         </Typography>
                     )}

@@ -17,7 +17,7 @@ const useStyles = makeStyles(theme => ({
     margin: {marginBottom: theme.spacing(2)}
 }))
 
-export const TrainingDirectionCard = ({trainingDirection, facultyName, openSettings}) => {
+export const TrainingDirectionCard = ({trainingDirection, facultyName, openSettings, handleDelete}) => {
     const classes = useStyles()
     const separateLength = 70
     const cropDescription = `${trainingDirection.description.substring(0, separateLength)}${trainingDirection.description.length > separateLength ? '...' : ''}`
@@ -62,12 +62,23 @@ export const TrainingDirectionCard = ({trainingDirection, facultyName, openSetti
             <CardActions>
                 <Button className={classes.button} size={"small"}>Перейти к курсам</Button>
                 {isAdmin() && (
-                    <Button className={classes.button}
-                            size={"small"}
-                            onClick={() => openSettings(trainingDirection)}
-                    >
-                        Редактировать
-                    </Button>
+                    <React.Fragment>
+                        <Button className={classes.button}
+                                size={"small"}
+                                onClick={() => openSettings(trainingDirection)}
+                        >
+                            Редактировать
+                        </Button>
+                        <Button className={classes.button}
+                                size={"small"}
+                                color={"secondary"}
+                                onClick={() => handleDelete(trainingDirection.id)}
+                        >
+                            удалить
+                        </Button>
+                    </React.Fragment>
+
+
                 )}
             </CardActions>
         </Card>

@@ -15,6 +15,9 @@ import Tooltip from "@material-ui/core/Tooltip";
 import {isAdmin} from "../roles";
 import {AlertContext} from "../context/notify/alertContext";
 import {SubjectAddDialog} from "../components/SubjectAddDialog";
+import {DeleteDialog} from "../components/DeleteDialog";
+import {COURSE} from "../entityTypes";
+import {SubjectSettingDialog} from "../components/SubjectSettingDialog";
 
 const useStyles = makeStyles(theme => ({
     loader: {
@@ -43,6 +46,10 @@ export const SubjectPage = () => {
     const [count, setCount] = useState(0)
     const [dictionary, setDictionary] = useState()
     const [open, setOpen] = useState(false);
+    const [settingOpen, setSettingOpen] = useState(false);
+    const [settingSubject, setSettingSubject] = useState();
+    const [deleteOpen, setDeleteOpen] = useState(false)
+    const [deleteSubjectId, setDeleteSubjectId] = useState()
     const alert = useContext(AlertContext)
 
     const pageSize = 12
@@ -65,6 +72,24 @@ export const SubjectPage = () => {
         // eslint-disable-next-line
     }, [pageNum])
 
+    const handleDeleteCourse = () => {
+        if(!deleteSubjectId) return
+        deleteSubject(deleteSubjectId)
+            .then(() => {
+                setPageNum(1)
+                fetchSubjectPage()
+                    .then(response => {
+                        setSubjectPage(response.data.content)
+                        setCount(response.data.totalCount)
+                        setPageCount(Math.ceil(response.data.totalCount / pageSize))
+                    })
+                    .catch(e => handleError(e))
+            })
+            .catch(e => handleError(e))
+        setDeleteSubjectId()
+        setDeleteOpen(false)
+    }
+
 
     const fetchSubjectPage = async () => {
         const request = {pageNum, pageSize}
@@ -75,9 +100,15 @@ export const SubjectPage = () => {
         return await axios.get(`${url}/api/dict/subject`)
     }
 
-
     const addSubject = async subject => {
         return await axios.post(`${url}/api/subjects`, subject, {headers: {Authorization: authStr}})
+    }
+    const updateSubject = async subject => {
+        return await axios.put(`${url}/api/subjects`, subject, {headers: {Authorization: authStr}})
+    }
+
+    const deleteSubject = async id => {
+        return await axios.delete(`${url}/api/subjects`, {headers: {Authorization: authStr}, params: {id}})
     }
 
     const handleError = error => {
@@ -107,12 +138,45 @@ export const SubjectPage = () => {
             .catch(e => handleError(e))
     };
 
+    const handleUpdateSubject = subject => {
+        setSettingOpen(false)
+        updateSubject(subject)
+            .then(() => {
+                fetchSubjectPage()
+                    .then(response => {
+                        setSubjectPage(response.data.content)
+                        setCount(response.data.totalCount)
+                        setPageCount(Math.ceil(response.data.totalCount / pageSize))
+                    })
+                    .catch(e => handleError(e))
+            })
+            .catch(e => handleError(e))
+    };
+
     const handleClickOpen = () => {
         setOpen(true);
     };
 
     const handleClose = () => {
         setOpen(false);
+    };
+    const handleClickOpenSetting = subject => {
+        setSettingSubject(subject)
+        setSettingOpen(true);
+    };
+
+    const handleCloseSetting = () => {
+        setSettingOpen(false);
+        setSettingSubject()
+    };
+
+    const handleClickDeleteOpen = (id) => {
+        setDeleteSubjectId(id)
+        setDeleteOpen(true);
+    };
+
+    const handleDeleteClose = () => {
+        setDeleteOpen(false);
     };
 
 
@@ -142,6 +206,8 @@ export const SubjectPage = () => {
                             <SubjectCard
                                 subject={subject}
                                 subjectTypeStr={dictionary[subject.type]}
+                                handleDelete={handleClickDeleteOpen}
+                                handleUpdate={handleClickOpenSetting}
                             />
                         </Grid>
                     ))}
@@ -166,6 +232,21 @@ export const SubjectPage = () => {
                 saveSubject={handleAddSubject}
                 open={open}
                 handleClose={handleClose}
+            />
+            {settingSubject && (
+                <SubjectSettingDialog
+                    subject={settingSubject}
+                    saveSubject={handleUpdateSubject}
+                    open={settingOpen}
+                    handleClose={handleCloseSetting}
+                />
+            )}
+
+            <DeleteDialog
+                handleClose={handleDeleteClose}
+                open={deleteOpen}
+                handleAccept={handleDeleteCourse}
+                entityType={COURSE}
             />
         </React.Fragment>
 

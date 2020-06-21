@@ -15,6 +15,9 @@ import {EducationProgramCard} from "../components/EducationProgramCard";
 import {isStudent} from "../roles";
 import {AlertContext} from "../context/notify/alertContext";
 import {EducationProgramAddDialog} from "../components/EducationProgramAddDialog";
+import {DeleteDialog} from "../components/DeleteDialog";
+import {EDUCATION_PROGRAM} from "../entityTypes";
+import {EducationProgramSettingDialog} from "../components/EducationProgramSettingDialog";
 
 const useStyles = makeStyles(theme => ({
     loader: {
@@ -43,16 +46,17 @@ export const EducationProgramsPage = () => {
     const [pageCount, setPageCount] = useState(1)
     const [pageNum, setPageNum] = useState(1)
     const [count, setCount] = useState(0)
-    const [dictionary, setDictionary] = useState()
     const [allSubjects, setAllSubjects] = useState()
     const [open, setOpen] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const [settingsEP, setSettingsEP] = useState();
+    const [deleteOpen, setDeleteOpen] = useState(false)
+    const [deleteEducationProgramId, setDeleteEducationProgramId] = useState()
 
 
     const pageSize = 12
 
     useEffect(() => {
-        fetchDictionary()
-            .then(response => setDictionary(response.data))
         fetchAllSubjects()
             .then(response => setAllSubjects(response.data))
             .catch(e => handleError(e))
@@ -77,16 +81,19 @@ export const EducationProgramsPage = () => {
         return await axios.post(`${url}/api/education-programs/page`, request, {headers: {Authorization: authStr}})
     }
 
-    const fetchDictionary = async () => {
-        return await axios.get(`${url}/api/dict/education-program`)
-    }
-
     const fetchAllSubjects = async () => {
         return await axios.get(`${url}/api/subjects/list`, {headers: {Authorization: authStr}})
     }
 
     const addEducationProgram = async educationProgram => {
         return await axios.post(`${url}/api/education-programs`, educationProgram, {headers: {Authorization: authStr}})
+    }
+    const deleteEducationProgram = async id => {
+        return await axios.delete(`${url}/api/education-programs`, {headers: {Authorization: authStr}, params: {id}})
+    }
+
+    const saveEducationProgram = async educationProgram => {
+        return await axios.put(`${url}/api/education-programs`, educationProgram, {headers: {Authorization: authStr}})
     }
 
     const handleClickOpen = () => {
@@ -95,6 +102,25 @@ export const EducationProgramsPage = () => {
 
     const handleClose = () => {
         setOpen(false);
+    };
+
+    const handleClickOpenSettings = ep => {
+        setSettingsEP(ep)
+        setSettingsOpen(true);
+    };
+
+    const handleCloseSettings = () => {
+        setSettingsOpen(false);
+        setSettingsEP()
+    };
+
+    const handleClickDeleteOpen = (id) => {
+        setDeleteEducationProgramId(id)
+        setDeleteOpen(true);
+    };
+
+    const handleDeleteClose = () => {
+        setDeleteOpen(false);
     };
 
     const handleError = error => {
@@ -123,6 +149,40 @@ export const EducationProgramsPage = () => {
             })
     }
 
+    const handleUpdate = educationProgram => {
+        setDeleteOpen(false);
+        saveEducationProgram(educationProgram)
+            .then(() => {
+                fetchSubjectPage()
+                    .then(response => {
+                        setEducationProgramPage(response.data.content)
+                        setCount(response.data.totalCount)
+                        setPageCount(Math.ceil(response.data.totalCount / pageSize))
+                    })
+                    .catch(e => handleError(e))
+            })
+            .catch(e => handleError(e))
+        setSettingsEP()
+    }
+
+    const handleDelete = () => {
+        if(!deleteEducationProgramId) return
+        deleteEducationProgram(deleteEducationProgramId)
+            .then(() => {
+                setPageNum(1)
+                fetchSubjectPage()
+                    .then(response => {
+                        setEducationProgramPage(response.data.content)
+                        setCount(response.data.totalCount)
+                        setPageCount(Math.ceil(response.data.totalCount / pageSize))
+                    })
+                    .catch(e => handleError(e))
+            })
+            .catch(e => handleError(e))
+        setDeleteEducationProgramId()
+        setDeleteOpen(false)
+    }
+
 
     if (!educationProgramPage) return (
         <Box
@@ -149,6 +209,8 @@ export const EducationProgramsPage = () => {
                         <Grid key={educationProgram.id} item xs={3}>
                             <EducationProgramCard
                                 educationProgram={educationProgram}
+                                handleUpdate={handleClickOpenSettings}
+                                handleDelete={handleClickDeleteOpen}
                             />
                         </Grid>
                     ))}
@@ -174,6 +236,21 @@ export const EducationProgramsPage = () => {
                 handleClose={handleClose}
                 saveDirection={handleAddEducationProgram}
                 allSubjects={allSubjects}
+            />
+            {settingsEP && (
+                <EducationProgramSettingDialog
+                    open={settingsOpen}
+                    handleClose={handleCloseSettings}
+                    allSubjects={allSubjects}
+                    educationProgram={settingsEP}
+                    saveEducationProgram={handleUpdate}
+                />
+            )}
+            <DeleteDialog
+                handleClose={handleDeleteClose}
+                open={deleteOpen}
+                handleAccept={handleDelete}
+                entityType={EDUCATION_PROGRAM}
             />
         </React.Fragment>
 

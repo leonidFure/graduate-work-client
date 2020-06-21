@@ -16,7 +16,7 @@ const useStyles = makeStyles(theme => ({
     }
 }))
 
-export const EducationProgramCard = ({educationProgram}) => {
+export const EducationProgramCard = ({educationProgram, handleUpdate, handleDelete}) => {
     const classes = useStyles()
     const separateLength = 90
     const cropDescription = `${educationProgram.description.substring(0, separateLength)}${educationProgram.description.length > separateLength ? '...' : ''}`
@@ -56,7 +56,23 @@ export const EducationProgramCard = ({educationProgram}) => {
             </CardContent>
             <CardActions>
                 <Button className={classes.button} size={"small"}>Перейти к курсам</Button>
-                {isAdmin() && (<Button size={"small"}>Редактировать</Button>)}
+                {isAdmin() && (
+                    <React.Fragment>
+                        <Button
+                            size={"small"}
+                            onClick={() => handleUpdate(educationProgram)}
+                        >Редактировать</Button>
+
+                        <Button className={classes.button}
+                                size={"small"}
+                                color={"secondary"}
+                                onClick={() => handleDelete(educationProgram.id)}
+                        >
+                            удалить
+                        </Button>
+                    </React.Fragment>
+
+                )}
             </CardActions>
         </Card>
     )

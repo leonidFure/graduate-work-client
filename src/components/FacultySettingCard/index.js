@@ -5,20 +5,22 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
+import Autocomplete from "@material-ui/lab/Autocomplete";
 import DialogActions from "@material-ui/core/DialogActions";
 import Button from "@material-ui/core/Button";
-import FormControl from "@material-ui/core/FormControl";
-import Select from "@material-ui/core/Select";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
 
-export const SubjectSettingDialog = ({subject, open, handleClose, saveSubject}) => {
+export const FacultyUpdateDialog = ({faculty, open, handleClose, saveDirection, allUsers}) => {
+
     // eslint-disable-next-line no-unused-vars
-    const [id, setId] = useState(subject.id)
-    const [name, setName] = useState(subject.name)
-    const [description, setDescription] = useState(subject.description)
-    const [type, setType] = useState(subject.type)
+    const [id, setId] = useState(faculty.id)
+    const [name, setName] = useState(faculty.name)
+    const [abbr, setAbbr] = useState(faculty.abbr)
+    const [description, setDescription] = useState(faculty.description)
+    // eslint-disable-next-line no-unused-vars
+    const [defaultUserId, setDefaultUserId] = useState(faculty.user.id)
+    const [user, setUser] = useState(faculty.user)
     const [nameValid, setNameValid] = useState(true)
+    const [abbrValid, setAbbrValid] = useState(true)
 
     const alert = useContext(AlertContext)
 
@@ -27,36 +29,50 @@ export const SubjectSettingDialog = ({subject, open, handleClose, saveSubject}) 
         setNameValid(true)
     }
 
+    const handleChangeAbbr = e => {
+        setAbbr(e.target.value)
+        setAbbrValid(true)
+    }
+
     const handleChangeDescription = e => {
         setDescription(e.target.value)
     }
 
-    const handleChangeType = e => {
-        setType(e.target.value)
+    const handleChangeSubject = (e, user) => {
+        setUser(user)
     }
 
     const handleSave = () => {
         let paramsValid = true
 
+        if (!user) paramsValid = false
 
         if (!name.trim()) {
             setNameValid(false)
             paramsValid = false
         }
+
+        if (!abbr.trim() || abbr.length > 6) {
+            setNameValid(false)
+            paramsValid = false
+        }
+
         if (!paramsValid) {
             alert.show('Поля заполнены некоректно', 'error')
         } else {
-            const subject = {}
-            subject.id = id
-            subject.name = name
-            subject.description = description
-            subject.type = type
-            saveSubject(subject)
+            const faculty = {}
+            faculty.id = id
+            faculty.name = name
+            faculty.abbr = abbr
+            faculty.description = description
+            faculty.managerId = user.id
+            saveDirection(faculty)
             pHandleClose()
         }
     }
 
     const pHandleClose = () => {
+        setNameValid(true)
         setNameValid(true)
         handleClose()
     }
@@ -66,7 +82,7 @@ export const SubjectSettingDialog = ({subject, open, handleClose, saveSubject}) 
             <DialogTitle id="form-dialog-title">Добавить программу обучения</DialogTitle>
             <DialogContent>
                 <Grid container spacing={2}>
-                    <Grid item xs={12}>
+                    <Grid item xs={12} sm={8}>
                         <TextField
                             id="name"
                             label="Название"
@@ -77,6 +93,19 @@ export const SubjectSettingDialog = ({subject, open, handleClose, saveSubject}) 
                             error={!nameValid}
                             value={name}
                             onChange={handleChangeName}
+                        />
+                    </Grid>
+                    <Grid item xs={8} sm={4}>
+                        <TextField
+                            id="abbr"
+                            label="Аббривиатура"
+                            variant="outlined"
+                            autoFocus
+                            required
+                            fullWidth
+                            error={!abbrValid}
+                            value={abbr}
+                            onChange={handleChangeAbbr}
                         />
                     </Grid>
                     <Grid item xs={12}>
@@ -93,17 +122,16 @@ export const SubjectSettingDialog = ({subject, open, handleClose, saveSubject}) 
                         />
                     </Grid>
                     <Grid item xs={12}>
-                        <FormControl variant="outlined" fullWidth>
-                            <InputLabel htmlFor="outlined-age-native-simple">Тип предмета</InputLabel>
-                            <Select
-                                value={type}
-                                onChange={handleChangeType}
-                                label="Тип предмета"
-                            >
-                                <MenuItem value={'EXAM'}>Экзамен</MenuItem>
-                                <MenuItem value={'OLYMPIAD'}>Олимпиада</MenuItem>
-                            </Select>
-                        </FormControl>
+                        {allUsers && (
+                            <Autocomplete
+                                id="combo-box-demo"
+                                options={allUsers}
+                                getOptionLabel={(user) => `${user.lastName} ${user.firstName} ${!user.patronymic ? '' : user.patronymic}`}
+                                onChange={handleChangeSubject}
+                                defaultValue={allUsers.find(u => u.id === defaultUserId)}
+                                renderInput={(params) => <TextField {...params} label="Декан института" variant="outlined"/>}
+                            />
+                        )}
                     </Grid>
                 </Grid>
             </DialogContent>

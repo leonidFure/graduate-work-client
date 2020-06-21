@@ -33,7 +33,7 @@ const useStyles = makeStyles(theme => ({
 
 const url = process.env.REACT_APP_SERVER_URL
 
-export const SubjectCard = ({subject, subjectTypeStr}) => {
+export const SubjectCard = ({subject, subjectTypeStr, handleUpdate, handleDelete}) => {
     const classes = useStyles()
     return (
         <Card className={classes.root}>
@@ -57,7 +57,13 @@ export const SubjectCard = ({subject, subjectTypeStr}) => {
             </CardContent>
             <CardActions>
                 <Button href={`/courses?subject_id=${subject.id}`}>Курсы</Button>
-                {isAdmin() && (<Button>Редактировать</Button>)}
+                {isAdmin() && (
+                    <React.Fragment>
+                        <Button size={"small"} onClick={() => handleUpdate(subject)}>Редактировать</Button>
+                        <Button color={"secondary"} size={"small"} onClick={() => handleDelete(subject.id)}>удалить</Button>
+                    </React.Fragment>
+
+                )}
             </CardActions>
         </Card>
     )

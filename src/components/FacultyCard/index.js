@@ -1,18 +1,9 @@
 import React from "react";
-import {Card, CardActions, CardContent, CardHeader, Link, Paper} from "@material-ui/core";
+import {Card, CardActions, CardContent, Link} from "@material-ui/core";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import Typography from "@material-ui/core/Typography";
-import Chip from "@material-ui/core/Chip";
 import Button from "@material-ui/core/Button";
-import Divider from "@material-ui/core/Divider";
-import Tooltip from "@material-ui/core/Tooltip";
-import withStyles from "@material-ui/core/styles/withStyles";
 import {HtmlTooltip} from "../HtmlTooltip";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import Avatar from "@material-ui/core/Avatar";
-import ListItemText from "@material-ui/core/ListItemText";
 import {isAdmin} from "../../roles";
 
 const useStyles = makeStyles(theme => ({
@@ -25,9 +16,7 @@ const useStyles = makeStyles(theme => ({
     margin: {marginBottom: theme.spacing(2)}
 }))
 
-const url = process.env.REACT_APP_SERVER_URL;
-
-export const FacultyCard = ({faculty}) => {
+export const FacultyCard = ({faculty, handleDelete, handleUpdate}) => {
     const classes = useStyles()
     const separateLength = 70
     const cropDescription = `${faculty.description.substring(0, separateLength)}${faculty.description.length > separateLength ? '...' : ''}`
@@ -69,9 +58,13 @@ export const FacultyCard = ({faculty}) => {
             </CardContent>
 
             <CardActions>
-                <Button className={classes.button} size={"small"}>Перейти к преподавателям</Button>
-                {isAdmin() && (<Button size={"small"}>Редактировать</Button>)}
-
+                <Button className={classes.button} size={"small"}>Преподаватели</Button>
+                {isAdmin() && (
+                    <React.Fragment>
+                        <Button size={"small"} onClick={() => handleUpdate(faculty)}>Редактировать</Button>
+                        <Button color={"secondary"} size={"small"} onClick={() => handleDelete(faculty.id)}>удалить</Button>
+                    </React.Fragment>
+                )}
             </CardActions>
         </Card>
     )

@@ -23,6 +23,8 @@ import {CourseAddDialog} from "../components/CourseAddDialog";
 import {isStudent} from "../roles";
 import Box from "@material-ui/core/Box";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import {DeleteDialog} from "../components/DeleteDialog";
+import {COURSE} from "../entityTypes";
 
 const url = process.env.REACT_APP_SERVER_URL;
 
@@ -109,6 +111,8 @@ export const CoursesPage = () => {
     const [currentSortType, setCurrentSortType] = useState(DESC)
     const [open, setOpen] = useState(false);
     const [allProgram, setAllProgram] = useState([]);
+    const [deleteOpen, setDeleteOpen] = useState(false)
+    const [deleteCourseId, setDeleteCourseId] = useState()
 
     const classes = useStyles()
     const history = useHistory()
@@ -125,6 +129,15 @@ export const CoursesPage = () => {
 
     const handleClose = () => {
         setOpen(false);
+    };
+
+    const handleClickDeleteOpen = (id) => {
+        setDeleteCourseId(id)
+        setDeleteOpen(true);
+    };
+
+    const handleDeleteClose = () => {
+        setDeleteOpen(false);
     };
 
     useEffect(() => {
@@ -198,8 +211,11 @@ export const CoursesPage = () => {
     }
 
     const saveTimetables = async timetables => {
-
         return await axios.post(`${url}/api/timetables`, {timetables}, {headers: {Authorization: authStr}})
+    }
+
+    const deleteCourse = async id => {
+        await axios.delete(`${url}/api/courses`, {headers: {Authorization: authStr}, params: {id}})
     }
 
     const handleError = error => {
@@ -229,6 +245,24 @@ export const CoursesPage = () => {
 
     const handleChangeCourseNameFilter = e => {
         setCourseNameFilter(e.target.value)
+    }
+
+    const handleDeleteCourse = () => {
+        if(!deleteCourseId) return
+        deleteCourse(deleteCourseId)
+            .then(() => {
+                setPageNum(1)
+                fetchCoursePage()
+                    .then(response => {
+                        setCoursePage(response.data.content)
+                        setCount(response.data.totalCount)
+                        setPageCount(Math.ceil(response.data.totalCount / pageSize))
+                    })
+                    .catch(e => handleError(e))
+            })
+            .catch(e => handleError(e))
+        setDeleteCourseId()
+        setDeleteOpen(false)
     }
 
     const handleSaveCourseAndTimetable = (course, timetables) => {
@@ -356,6 +390,7 @@ export const CoursesPage = () => {
                                             subjectName={getSubjectName(course.educationProgram.subjectId)}
                                             hasSubscription={course.hasSubscription}
                                             courseId={course.id}
+                                            handleDeleteCourse={handleClickDeleteOpen}
                                         />
                                     </Grid>
                                 )
@@ -384,6 +419,12 @@ export const CoursesPage = () => {
                 open={open}
                 allEducationPrograms={allProgram}
                 saveCourseAndTimetables={handleSaveCourseAndTimetable}
+            />
+            <DeleteDialog
+                handleClose={handleDeleteClose}
+                open={deleteOpen}
+                handleAccept={handleDeleteCourse}
+                entityType={COURSE}
             />
         </React.Fragment>
 

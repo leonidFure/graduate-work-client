@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from "react"
+import React, {useContext, useState} from "react"
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
@@ -6,7 +6,7 @@ import CardMedia from "@material-ui/core/CardMedia";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import CardHeader from "@material-ui/core/CardHeader";
 import Avatar from "@material-ui/core/Avatar";
-import {CardActions, Link, Tooltip} from "@material-ui/core";
+import {CardActions, Tooltip} from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";
 import EventAvailableIcon from '@material-ui/icons/EventAvailable';
 import {Rating} from "@material-ui/lab";
@@ -16,14 +16,13 @@ import EventBusyIcon from '@material-ui/icons/EventBusy';
 import NotificationsNoneIcon from '@material-ui/icons/NotificationsNone';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import IconButton from "@material-ui/core/IconButton";
-import ShareIcon from '@material-ui/icons/Share';
 import axios from "axios"
 import {useHistory} from "react-router-dom"
 import {AlertContext} from "../../context/notify/alertContext";
 import Snackbar from "@material-ui/core/Snackbar";
 import useTheme from "@material-ui/core/styles/useTheme";
 import {SubscriptionConfirm} from "../SubscriptionConfirm";
-import {isStudent} from "../../roles";
+import {isAdmin, isStudent} from "../../roles";
 
 
 const useStyles = makeStyles(theme => ({
@@ -51,7 +50,7 @@ const useStyles = makeStyles(theme => ({
 const url = process.env.REACT_APP_SERVER_URL
 
 
-export const CourseCard = ({name, startDate, endDate, courseStatus, courseStatusStr, description, image, rating, courseCount, subjectName, hasSubscription, courseId}) => {
+export const CourseCard = ({name, startDate, endDate, courseStatus, courseStatusStr, description, image, rating, courseCount, subjectName, hasSubscription, courseId, handleDeleteCourse}) => {
     const avatarStr = subjectName.charAt(0)
     const startDateStr = new Date(startDate).toLocaleDateString('ru', {day: 'numeric', month: 'short'})
     const endDateStr = new Date(endDate).toLocaleDateString('ru', {day: 'numeric', month: 'short'})
@@ -230,7 +229,7 @@ export const CourseCard = ({name, startDate, endDate, courseStatus, courseStatus
                         <Grid item style={{textAlign: "center"}}>
                             <Tooltip title={rating}>
                                 <Typography variant='h6'>
-                                    {courseCount? courseCount: 0}
+                                    {courseCount ? courseCount : 0}
                                 </Typography>
                             </Tooltip>
                             <Typography variant='caption' color={"textSecondary"}>
@@ -252,6 +251,9 @@ export const CourseCard = ({name, startDate, endDate, courseStatus, courseStatus
                         </Tooltip>
                     )}
                     <Button onClick={handleOpenCourse}>открыть</Button>
+                    {isAdmin() && (
+                        <Button color={"secondary"} onClick={() => {handleDeleteCourse(courseId)}}>удалить</Button>
+                    )}
                 </CardActions>
                 <Snackbar open={open} autoHideDuration={2000} onClose={handleClose}
                           anchorOrigin={{vertical: 'bottom', horizontal: 'left'}} message={msg}/>

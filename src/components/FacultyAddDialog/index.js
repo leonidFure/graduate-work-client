@@ -72,6 +72,7 @@ export const FacultyAddDialog = ({open, handleClose, saveDirection, allUsers}) =
         setDescription('')
         setUser()
         setNameValid(true)
+        setAbbrValid(true)
         handleClose()
     }
 

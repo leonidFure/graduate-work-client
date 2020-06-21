@@ -15,6 +15,9 @@ import {isAdmin} from "../roles";
 import {FacultyCard} from "../components/FacultyCard";
 import {AlertContext} from "../context/notify/alertContext";
 import {FacultyAddDialog} from "../components/FacultyAddDialog";
+import {DeleteDialog} from "../components/DeleteDialog";
+import { FACULTY} from "../entityTypes";
+import {FacultyUpdateDialog} from "../components/FacultySettingCard";
 
 const useStyles = makeStyles(theme => ({
     loader: {
@@ -44,7 +47,10 @@ export const FacultiesPage = () => {
     const [count, setCount] = useState(0)
     const [users, setUsers] = useState()
     const [open, setOpen] = useState(false);
-
+    const [deleteOpen, setDeleteOpen] = useState(false)
+    const [updateOpen, setUpdateOpen] = useState(false)
+    const [updateFac, setUpdateFac] = useState()
+    const [deleteFacultyId, setDeleteFacultyId] = useState()
     const pageSize = 16
 
     useEffect(() => {
@@ -77,6 +83,14 @@ export const FacultiesPage = () => {
         return await axios.post(`${url}/api/faculties`, faculty, {headers: {Authorization: authStr}})
     }
 
+    const updateFaculty = async faculty => {
+        return await axios.put(`${url}/api/faculties`, faculty, {headers: {Authorization: authStr}})
+    }
+
+    const deleteFaculty = async id => {
+        return await axios.delete(`${url}/api/faculties`, {headers: {Authorization: authStr}, params: {id}})
+    }
+
     const fetchAllTeachers = async () => {
         return await axios.get(`${url}/api/users/list`, {headers: {Authorization: authStr}})
     }
@@ -94,6 +108,23 @@ export const FacultiesPage = () => {
                     .catch(e => handleError(e))
             })
             .catch(e => handleError(e))
+    }
+
+    const handleUpdateFaculty = faculty => {
+        setUpdateOpen(false)
+        updateFaculty(faculty)
+            .then(() => {
+                fetchFacultyPage()
+                    .then(response => {
+                        setFacultyPage(response.data.content)
+                        setCount(response.data.totalCount)
+                        setPageCount(Math.ceil(response.data.totalCount / pageSize))
+                    })
+                    .catch(e => handleError(e))
+            })
+            .catch(e => handleError(e))
+        setUpdateFac()
+
     }
 
     const handleError = error => {
@@ -115,6 +146,44 @@ export const FacultiesPage = () => {
     const handleClose = () => {
         setOpen(false);
     };
+
+    const handleClickDeleteOpen = (id) => {
+        setDeleteFacultyId(id)
+        setDeleteOpen(true);
+    };
+
+    const handleDeleteClose = () => {
+        setDeleteOpen(false);
+        setDeleteFacultyId()
+    };
+
+    const handleClickUpdateOpen = faculty => {
+        setUpdateFac(faculty)
+        setUpdateOpen(true);
+    };
+
+    const handleUpdateClose = () => {
+        setUpdateOpen(false);
+        setUpdateFac()
+    };
+
+    const handleDeleteCourse = () => {
+        if(!deleteFacultyId) return
+        deleteFaculty(deleteFacultyId)
+            .then(() => {
+                setPageNum(1)
+                fetchFacultyPage()
+                    .then(response => {
+                        setFacultyPage(response.data.content)
+                        setCount(response.data.totalCount)
+                        setPageCount(Math.ceil(response.data.totalCount / pageSize))
+                    })
+                    .catch(e => handleError(e))
+            })
+            .catch(e => handleError(e))
+        setDeleteFacultyId()
+        setDeleteOpen(false)
+    }
 
 
     if (!facultyPage) return (
@@ -142,6 +211,8 @@ export const FacultiesPage = () => {
                         <Grid key={faculty.id} item xs={3}>
                             <FacultyCard
                                 faculty={faculty}
+                                handleDelete={handleClickDeleteOpen}
+                                handleUpdate={handleClickUpdateOpen}
                             />
                         </Grid>
                     ))}
@@ -168,6 +239,23 @@ export const FacultiesPage = () => {
                 saveDirection={handleAddFaculty}
                 handleClose={handleClose}
                 allUsers={users}
+            />
+
+            {updateFac && (
+                <FacultyUpdateDialog
+                    faculty={updateFac}
+                    open={updateOpen}
+                    saveDirection={handleUpdateFaculty}
+                    handleClose={handleUpdateClose}
+                    allUsers={users}
+                />
+            )}
+
+            <DeleteDialog
+                handleClose={handleDeleteClose}
+                open={deleteOpen}
+                handleAccept={handleDeleteCourse}
+                entityType={FACULTY}
             />
         </React.Fragment>
 

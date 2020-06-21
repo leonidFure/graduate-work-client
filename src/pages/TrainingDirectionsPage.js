@@ -16,6 +16,8 @@ import Tooltip from "@material-ui/core/Tooltip";
 import {isAdmin} from "../roles";
 import {TrainingDirectionAddDialog} from "../components/TrainingDirectionAddDialog";
 import {TrainingDirectionSettingDialog} from "../components/TrainingDirectionSettingDialog";
+import {DeleteDialog} from "../components/DeleteDialog";
+import {TRAINING_DIRECTION} from "../entityTypes";
 
 
 const useStyles = makeStyles(theme => ({
@@ -51,7 +53,8 @@ export const TrainingDirectionsPage = () => {
     const [allSubjects, setAllSubjects] = useState()
     const [currentDirection, setCurrentDirection] = useState()
     const [currentFaculty, setCurrentFaculty] = useState()
-
+    const [deleteOpen, setDeleteOpen] = useState(false)
+    const [deleteTrainingDirectionId, setDeleteTrainingDirectionId] = useState()
     const pageSize = 16
 
     useEffect(() => {
@@ -95,6 +98,24 @@ export const TrainingDirectionsPage = () => {
         // eslint-disable-next-line
     }, [currentDirection])
 
+    const handleDeleteTrainingProgram = () => {
+        if(!deleteTrainingDirectionId) return
+        deleteTrainingProgram(deleteTrainingDirectionId)
+            .then(() => {
+                setPageNum(1)
+                fetchTrainingDirectionPage()
+                    .then(response => {
+                        setTrainingDirectionPage(response.data.content)
+                        setCount(response.data.totalCount)
+                        setPageCount(Math.ceil(response.data.totalCount / pageSize))
+                    })
+                    .catch(e => handleError(e))
+            })
+            .catch(e => handleError(e))
+        setDeleteTrainingDirectionId()
+        setDeleteOpen(false)
+    }
+
 
     const fetchTrainingDirectionPage = async () => {
         const request = {pageNum, pageSize}
@@ -126,6 +147,9 @@ export const TrainingDirectionsPage = () => {
     const addTrainingProgram = async trainingDirection => {
         await axios.put(`${url}/api/training-directions`, trainingDirection, {headers: {Authorization: authStr}})
     }
+    const deleteTrainingProgram = async id => {
+        await axios.delete(`${url}/api/training-directions`, {headers: {Authorization: authStr}, params: {id}})
+    }
 
     const handleClickOpen = () => {
         setOpen(true);
@@ -133,6 +157,15 @@ export const TrainingDirectionsPage = () => {
 
     const handleClose = () => {
         setOpen(false);
+    };
+
+    const handleClickDeleteOpen = (id) => {
+        setDeleteTrainingDirectionId(id)
+        setDeleteOpen(true);
+    };
+
+    const handleDeleteClose = () => {
+        setDeleteOpen(false);
     };
 
     const handleClickOpenSet = dir => {
@@ -220,6 +253,7 @@ export const TrainingDirectionsPage = () => {
                                 trainingDirection={dir}
                                 facultyName={getFacultyName(dir.facultyId)}
                                 openSettings={handleClickOpenSet}
+                                handleDelete={handleClickDeleteOpen}
                             />
                         </Grid>
                     ))}
@@ -259,7 +293,12 @@ export const TrainingDirectionsPage = () => {
                     curFaculty={currentFaculty}
                 />
             )}
-
+            <DeleteDialog
+                handleClose={handleDeleteClose}
+                open={deleteOpen}
+                handleAccept={handleDeleteTrainingProgram}
+                entityType={TRAINING_DIRECTION}
+            />
         </React.Fragment>
 
     )

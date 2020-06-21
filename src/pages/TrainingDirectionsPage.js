@@ -90,7 +90,7 @@ export const TrainingDirectionsPage = () => {
     }, [trainingDirectionPage])
 
     useEffect(() => {
-        if(!currentDirection) return
+        if (!currentDirection) return
         fetchFaculty(currentDirection.facultyId)
             .then(response => response.data)
             .then(faculty => setCurrentFaculty(faculty))
@@ -99,7 +99,7 @@ export const TrainingDirectionsPage = () => {
     }, [currentDirection])
 
     const handleDeleteTrainingProgram = () => {
-        if(!deleteTrainingDirectionId) return
+        if (!deleteTrainingDirectionId) return
         deleteTrainingProgram(deleteTrainingDirectionId)
             .then(() => {
                 setPageNum(1)
@@ -258,14 +258,17 @@ export const TrainingDirectionsPage = () => {
                         </Grid>
                     ))}
                 </Grid>
-                <div style={{display: 'flex', justifyContent: 'center', marginTop: theme.spacing(2)}}>
-                    <Pagination
-                        count={pageCount}
-                        color="primary"
-                        page={pageNum}
-                        onChange={handleChangePage}
-                    />
-                </div>
+                {(trainingDirectionPage && pageCount && pageCount > 1) && (
+                    <div style={{display: 'flex', justifyContent: 'center', marginTop: theme.spacing(2)}}>
+                        <Pagination
+                            count={pageCount}
+                            color="primary"
+                            page={pageNum}
+                            onChange={handleChangePage}
+                        />
+                    </div>
+                )}
+
             </div>
             {isAdmin() && (
                 <Tooltip title="Добавить направление подготовки" aria-label="add">

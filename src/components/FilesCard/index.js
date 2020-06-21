@@ -14,6 +14,9 @@ import {isAdmin} from "../../roles";
 import {FileUploadForm} from "../FileUploadForm";
 import {HtmlTooltip} from "../HtmlTooltip";
 import makeStyles from "@material-ui/core/styles/makeStyles";
+import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
+import IconButton from "@material-ui/core/IconButton";
+import DeleteIcon from '@material-ui/icons/Delete';
 
 const url = process.env.REACT_APP_SERVER_URL;
 
@@ -32,7 +35,7 @@ const useStyles = makeStyles(theme => ({
     }
 }))
 
-export const FilesCard = ({files, creatorId, uploadFile, visible}) => {
+export const FilesCard = ({files, creatorId, uploadFile, visible, deleteFile}) => {
     const classes = useStyles()
 
     return (
@@ -43,7 +46,7 @@ export const FilesCard = ({files, creatorId, uploadFile, visible}) => {
                 </Typography>
                 {files && files.length > 0 ? (
                     <div>
-                        <List component="nav" dense={true}  className={classes.root}>
+                        <List component="nav" dense={true} className={classes.root}>
                             {files.map(file => (
                                 <HtmlTooltip title={
                                     <React.Fragment>
@@ -64,7 +67,7 @@ export const FilesCard = ({files, creatorId, uploadFile, visible}) => {
                                                     </Avatar>
                                                 </ListItemAvatar>
                                             </Grid>
-                                            <Grid item xs zeroMinWidth>
+                                            <Grid item xs={8} zeroMinWidth>
                                                 <ListItemText
                                                     primary={
                                                         <Typography noWrap>
@@ -79,6 +82,11 @@ export const FilesCard = ({files, creatorId, uploadFile, visible}) => {
                                                 />
                                             </Grid>
                                         </Grid>
+                                        <ListItemSecondaryAction>
+                                            <IconButton edge="end" aria-label="comments" onClick={() => deleteFile(file.id)}>
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </ListItemSecondaryAction>
                                     </ListItem>
                                 </HtmlTooltip>
 

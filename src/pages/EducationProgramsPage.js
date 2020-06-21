@@ -215,14 +215,17 @@ export const EducationProgramsPage = () => {
                         </Grid>
                     ))}
                 </Grid>
-                <div style={{display: 'flex', justifyContent: 'center', marginTop: theme.spacing(2)}}>
-                    <Pagination
-                        count={pageCount}
-                        color="primary"
-                        page={pageNum}
-                        onChange={handleChangePage}
-                    />
-                </div>
+                {(educationProgramPage && pageCount && pageCount > 1 ) && (
+                    <div style={{display: 'flex', justifyContent: 'center', marginTop: theme.spacing(2)}}>
+                        <Pagination
+                            count={pageCount}
+                            color="primary"
+                            page={pageNum}
+                            onChange={handleChangePage}
+                        />
+                    </div>
+                )}
+
             </div>
             {(!isStudent()) && (
                 <Tooltip title="Добавить программу обучения" aria-label="add">

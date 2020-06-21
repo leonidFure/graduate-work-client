@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from "react"
-import {useHistory} from "react-router-dom"
+import {useHistory, useLocation} from "react-router-dom"
 import makeStyles from "@material-ui/core/styles/makeStyles"
 import axios from "axios"
 import Grid from "@material-ui/core/Grid";
@@ -30,6 +30,9 @@ const useStyles = makeStyles(theme => ({
     },
 }))
 
+function useQuery() {
+    return new URLSearchParams(useLocation().search);
+}
 
 const url = process.env.REACT_APP_SERVER_URL;
 const ACCESS_TOKEN = localStorage.getItem('accessToken')
@@ -39,7 +42,8 @@ export const SubjectPage = () => {
     const classes = useStyles()
     const history = useHistory()
     const theme = useTheme();
-
+    const query = useQuery()
+    const trainingDirectionId = query.get("training_direction_id")
     const [subjectPage, setSubjectPage] = useState()
     const [pageCount, setPageCount] = useState(1)
     const [pageNum, setPageNum] = useState(1)
@@ -73,7 +77,7 @@ export const SubjectPage = () => {
     }, [pageNum])
 
     const handleDeleteCourse = () => {
-        if(!deleteSubjectId) return
+        if (!deleteSubjectId) return
         deleteSubject(deleteSubjectId)
             .then(() => {
                 setPageNum(1)
@@ -92,7 +96,7 @@ export const SubjectPage = () => {
 
 
     const fetchSubjectPage = async () => {
-        const request = {pageNum, pageSize}
+        const request = {pageNum, pageSize, trainingDirectionId}
         return await axios.post(`${url}/api/subjects/page`, request, {headers: {Authorization: authStr}})
     }
 
@@ -212,14 +216,17 @@ export const SubjectPage = () => {
                         </Grid>
                     ))}
                 </Grid>
-                <div style={{display: 'flex', justifyContent: 'center', marginTop: theme.spacing(2)}}>
-                    <Pagination
-                        count={pageCount}
-                        color="primary"
-                        page={pageNum}
-                        onChange={handleChangePage}
-                    />
-                </div>
+                {(subjectPage && pageCount && pageCount > 1) && (
+                    <div style={{display: 'flex', justifyContent: 'center', marginTop: theme.spacing(2)}}>
+                        <Pagination
+                            count={pageCount}
+                            color="primary"
+                            page={pageNum}
+                            onChange={handleChangePage}
+                        />
+                    </div>
+                )}
+
             </div>
             {isAdmin() && (
                 <Tooltip title="Добавить предмет" aria-label="add">

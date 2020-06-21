@@ -60,7 +60,7 @@ export const TrainingDirectionCard = ({trainingDirection, facultyName, openSetti
             </CardContent>
 
             <CardActions>
-                <Button className={classes.button} size={"small"}>Перейти к курсам</Button>
+                <Button className={classes.button} size={"small"} href={`/subjects?training_direction_id=${trainingDirection.id}`}>Предметы</Button>
                 {isAdmin() && (
                     <React.Fragment>
                         <Button className={classes.button}

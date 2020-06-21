@@ -16,7 +16,7 @@ import {FacultyCard} from "../components/FacultyCard";
 import {AlertContext} from "../context/notify/alertContext";
 import {FacultyAddDialog} from "../components/FacultyAddDialog";
 import {DeleteDialog} from "../components/DeleteDialog";
-import { FACULTY} from "../entityTypes";
+import {FACULTY} from "../entityTypes";
 import {FacultyUpdateDialog} from "../components/FacultySettingCard";
 
 const useStyles = makeStyles(theme => ({
@@ -168,7 +168,7 @@ export const FacultiesPage = () => {
     };
 
     const handleDeleteCourse = () => {
-        if(!deleteFacultyId) return
+        if (!deleteFacultyId) return
         deleteFaculty(deleteFacultyId)
             .then(() => {
                 setPageNum(1)
@@ -217,14 +217,17 @@ export const FacultiesPage = () => {
                         </Grid>
                     ))}
                 </Grid>
-                <div style={{display: 'flex', justifyContent: 'center', marginTop: theme.spacing(2)}}>
-                    <Pagination
-                        count={pageCount}
-                        color="primary"
-                        page={pageNum}
-                        onChange={handleChangePage}
-                    />
-                </div>
+                {(facultyPage && pageCount && pageCount > 1) && (
+                    <div style={{display: 'flex', justifyContent: 'center', marginTop: theme.spacing(2)}}>
+                        <Pagination
+                            count={pageCount}
+                            color="primary"
+                            page={pageNum}
+                            onChange={handleChangePage}
+                        />
+                    </div>
+                )}
+
             </div>
             {isAdmin() && (
                 <Tooltip title="Добавить институт" aria-label="add">

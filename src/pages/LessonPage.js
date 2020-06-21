@@ -127,6 +127,7 @@ export const LessonPage = () => {
         return () => {
             document.body.removeChild(script);
         }
+        // eslint-disable-next-line
     }, [liveEvent]);
 
     const handleError = error => {
@@ -212,6 +213,20 @@ export const LessonPage = () => {
         })
     }
 
+    const handleDeleteFile = id => {
+        deleteFile(id)
+            .then(() => {
+                fetchFiles()
+                    .then(response => response.data)
+                    .then(filePage => {
+                        setFiles(filePage.content)
+                    })
+                    .catch(error => handleError(error))
+            }).catch(e => {
+            handleError(e)
+        })
+    }
+
     const handleStartLiveEvent = () => {
         startLiveEvent(liveEvent.id)
             .then(r => r.data)
@@ -241,6 +256,17 @@ export const LessonPage = () => {
 
     const openInfo = () => {
         setOpenStart(true)
+    }
+
+    const deleteFile = async id => {
+        return await axios.delete(`${url}/api/files/lessons`,
+            {
+                headers: {
+                    Authorization: authStr,
+                    'Content-Type': 'multipart/form-data'
+                },
+                params: {lessonId: lesson.id, fileId: id},
+            })
     }
 
     return (
@@ -280,8 +306,12 @@ export const LessonPage = () => {
                                 </Grid>
                                 <Grid item xs>
                                     {course && (
-                                        <FilesCard files={files} creatorId={course.creatorId}
-                                                   uploadFile={handleUploadFile} visible={visible}/>
+                                        <FilesCard files={files}
+                                                   creatorId={course.creatorId}
+                                                   uploadFile={handleUploadFile}
+                                                   visible={visible}
+                                                   deleteFile={handleDeleteFile}
+                                        />
                                     )}
                                 </Grid>
                             </Grid>

@@ -99,6 +99,7 @@ export const CoursesPage = () => {
     const authStr = 'Bearer '.concat(ACCESS_TOKEN);
     const query = useQuery()
     const subjectId = query.get("subject_id")
+    const trainingDirectionId = query.get("training_direction_id")
     const [coursePage, setCoursePage] = useState()
     const [pageCount, setPageCount] = useState(1)
     const [subjectList, setSubjectList] = useState()
@@ -188,7 +189,8 @@ export const CoursesPage = () => {
             nameFilter: courseNameFilter,
             sortField: currentSortField,
             sortType: currentSortType,
-            subjectId
+            subjectId,
+            trainingDirectionId
         }
         return await axios.post(`${url}/api/courses/page`, pageRequest, {headers: {Authorization: authStr}})
     }
@@ -397,14 +399,18 @@ export const CoursesPage = () => {
                             ))
                         )}
                     </Grid>
-                    <div style={{display: 'flex', justifyContent: 'center', marginTop: theme.spacing(2)}}>
-                        <Pagination
-                            count={pageCount}
-                            color="primary"
-                            page={pageNum}
-                            onChange={handleChangePage}
-                        />
-                    </div>
+                    {(coursePage && pageCount && pageCount > 1 ) && (
+                        <div style={{display: 'flex', justifyContent: 'center', marginTop: theme.spacing(2)}}>
+
+                            <Pagination
+                                count={pageCount}
+                                color="primary"
+                                page={pageNum}
+                                onChange={handleChangePage}
+                            />
+                        </div>
+                    )}
+
                     {(!isStudent()) && (
                         <Tooltip title="Добавить курс" aria-label="add">
                             <Fab color="primary" onClick={handleClickOpen} className={classes.absolute}>

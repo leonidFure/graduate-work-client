@@ -55,7 +55,7 @@ export const EducationProgramCard = ({educationProgram, handleUpdate, handleDele
                 </HtmlTooltip>
             </CardContent>
             <CardActions>
-                <Button className={classes.button} size={"small"}>Перейти к курсам</Button>
+                <Button className={classes.button} size={"small"} href={`/courses?education_program_id=${educationProgram.id}`}>Перейти к курсам</Button>
                 {isAdmin() && (
                     <React.Fragment>
                         <Button

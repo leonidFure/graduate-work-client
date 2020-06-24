@@ -22,6 +22,7 @@ import Tooltip from "@material-ui/core/Tooltip";
 import {isAdmin} from "../roles";
 import {AlertContext} from "../context/notify/alertContext";
 import {UserAddDialog} from "../components/UserAddDialog";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const useStyles = makeStyles(theme => ({
     loader: {
@@ -61,6 +62,7 @@ export const UsersPage = () => {
     const classes = useStyles()
     const history = useHistory()
     const theme = useTheme();
+
     const alert = useContext(AlertContext)
     const [allFaculties, setAllFaculties] = useState()
 
@@ -74,8 +76,25 @@ export const UsersPage = () => {
     const [userTypeFilter, setUserTypeFilter] = useState('ALL')
     const [open, setOpen] = useState(false);
 
-    const userTypes = isAdmin()? {ALL: 'Все', TEACHER: 'Преподаватели', STUDENT: 'Абитуриенты',  ADMIN: 'Администраторы'} : {ALL: 'Все', TEACHER: 'Преподаватели', STUDENT: 'Абитуриенты'}
+    const userTypes = isAdmin() ? {
+        ALL: 'Все',
+        TEACHER: 'Преподаватели',
+        STUDENT: 'Абитуриенты',
+        ADMIN: 'Администраторы'
+    } : {ALL: 'Все', TEACHER: 'Преподаватели', STUDENT: 'Абитуриенты'}
     const pageSize = 16
+
+    const isDownSm = useMediaQuery(theme.breakpoints.down('sm'));
+    const isDownMd = useMediaQuery(theme.breakpoints.down('md'));
+    const isDownLg = useMediaQuery(theme.breakpoints.down('lg'));
+    const getXs = () => {
+        if (isDownLg) {
+            if (isDownMd) {
+                if (isDownSm) return 12
+                else return 6
+            } else return 4
+        } else return 3
+    }
 
     useEffect(() => {
         fetchDictionary()
@@ -158,6 +177,7 @@ export const UsersPage = () => {
                     })
                     .catch(e => handleError(e))
             })
+            .then(() => alert.show('Преподаватель успешно добавлен', 'success'))
             .catch(e => handleError(e))
     }
 
@@ -210,7 +230,7 @@ export const UsersPage = () => {
 
                 <Grid container className={classes.root} spacing={3}>
                     {usersPage && usersPage.map(user => (
-                        <Grid key={user.id} item xs={3}>
+                        <Grid key={user.id} item xs={getXs()}>
                             <UserCard
                                 user={user}
                                 userTypeStr={dictionary[user.role]}

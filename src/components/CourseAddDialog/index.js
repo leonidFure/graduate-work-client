@@ -6,7 +6,7 @@ import DialogContent from "@material-ui/core/DialogContent";
 import TextField from "@material-ui/core/TextField";
 import DialogActions from "@material-ui/core/DialogActions";
 import Grid from "@material-ui/core/Grid";
-import {KeyboardDatePicker, KeyboardTimePicker} from "@material-ui/pickers";
+import {KeyboardDatePicker} from "@material-ui/pickers";
 import MaterialTable from "material-table";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import {AlertContext} from "../../context/notify/alertContext";
@@ -54,14 +54,7 @@ export const CourseAddDialog = ({open, handleClose, allEducationPrograms, saveCo
 
 
             ],
-            data: [
-                {
-                    dayOfWeek: 'SUNDAY',
-                    startTime: '11:30',
-                    endTime: '11:30',
-                    type: 'ODD'
-                }
-            ]
+            data: []
         }
     )
     const alert = useContext(AlertContext)

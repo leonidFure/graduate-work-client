@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from "react"
 import axios from "axios"
-    import {useHistory, useParams} from "react-router-dom";
+import {useHistory, useParams} from "react-router-dom";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import {AlertContext} from "../context/notify/alertContext";
 import Grid from "@material-ui/core/Grid";
@@ -13,6 +13,19 @@ import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import {SubscriptionConfirm} from "../components/SubscriptionConfirm";
 import Box from "@material-ui/core/Box";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import Paper from "@material-ui/core/Paper";
+import TextField from "@material-ui/core/TextField";
+import Rating from "@material-ui/lab/Rating";
+import Button from "@material-ui/core/Button";
+import {isAdmin, isStudent} from "../roles";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import Avatar from "@material-ui/core/Avatar";
+import Divider from "@material-ui/core/Divider";
+import ListItemText from "@material-ui/core/ListItemText";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
+import useTheme from "@material-ui/core/styles/useTheme";
 
 const url = process.env.REACT_APP_SERVER_URL;
 
@@ -46,6 +59,20 @@ const useStyles = makeStyles(theme => ({
     },
     breadcrumbs: {
         marginBottom: theme.spacing(3.5)
+    },
+    marginUp: {
+        marginTop: theme.spacing(5),
+        padding: theme.spacing(3)
+    },
+    divider: {
+        marginTop: theme.spacing(2),
+        marginBottom: theme.spacing(2),
+    },
+    inline: {
+        display: 'inline',
+    },
+    courseInfoCard: {
+        marginBottom: theme.spacing(3)
     }
 }))
 
@@ -55,19 +82,19 @@ const rowsPerPage = 10
 
 export const CoursePage = () => {
     const history = useHistory()
-    const userId = localStorage.getItem('userId')
 
     const classes = useStyles()
     const {id} = useParams()
-
+    const theme = useTheme()
     const [course, setCourse] = useState()
     const [user, setUser] = useState()
     const [subject, setSubject] = useState()
     const alert = useContext(AlertContext)
     const [startDateStr, setStartDateStr] = useState()
     const [endDateStr, setEndDateStr] = useState()
-    const [dictionary, setDictionary] = useState()
     const [teachers, setTeachers] = useState()
+    const [reviews, setReviews] = useState([])
+    const [timetables, setTimetables] = useState()
     const [expanded, setExpanded] = React.useState(false);
     const [lessons, setLessons] = useState()
     const [lessonPage, setLessonPage] = useState()
@@ -76,6 +103,11 @@ export const CoursePage = () => {
     const [page, setPage] = useState()
     const [open, setOpen] = useState(false);
     const [subOpen, setSubOpen] = useState(false)
+    const [value, setValue] = useState(0);
+    const [header, setHeader] = useState('')
+    const [body, setBody] = useState('')
+
+    const isDownMd = useMediaQuery(theme.breakpoints.down('md'));
 
 
     const handleClickOpen = () => {
@@ -98,14 +130,6 @@ export const CoursePage = () => {
 
     const handleSubClose = () => {
         setSubOpen(false);
-        subscribe()
-            .then(() =>{
-                fetchCourse()
-                    .then(response => response.data)
-                    .then(course => setCourse(course))
-                    .catch(e => handleError(e))
-            })
-            .catch(e => handleError(e))
     };
 
     useEffect(() => {
@@ -113,18 +137,21 @@ export const CoursePage = () => {
             .then(response => response.data)
             .then(course => setCourse(course))
             .catch(e => handleError(e))
-        fetchDictionary()
-            .then(response => response.data)
-            .then(dictionary => setDictionary(dictionary))
-            .catch(e => handleError(e))
         fetchTeachers(id)
             .then(response => response.data)
             .then(data => {
                 setTeachers(data)
             })
             .catch(e => handleError(e))
+        fetchReview()
+            .then(response => response.data)
+            .then(reviews => setReviews(reviews))
+            .catch(e => handleError(e))
         setPage(0)
-
+        fetchCourseTimetables()
+            .then(response => response.data)
+            .then(timetables => setTimetables(timetables))
+            .catch(e => handleError(e))
         // eslint-disable-next-line
     }, [])
 
@@ -167,7 +194,6 @@ export const CoursePage = () => {
     }, [course])
 
 
-
     const fetchCourse = async () => {
         return await axios.get(`${url}/api/courses`, {
             headers: {
@@ -175,6 +201,19 @@ export const CoursePage = () => {
             },
             params: {id}
         })
+    }
+
+
+    const fetchReview = async () => {
+        return await axios.get(`${url}/api/course-review/list`,
+            {
+                headers: {
+                    Authorization: authStr
+                },
+                params: {
+                    id: id
+                }
+            })
     }
 
     const fetchUser = async (id) => {
@@ -187,10 +226,6 @@ export const CoursePage = () => {
                     id: id
                 }
             })
-    }
-
-    const fetchDictionary = async () => {
-        return await axios.get(`${url}/api/dict/course`)
     }
 
     const fetchSubject = async (id) => {
@@ -223,6 +258,10 @@ export const CoursePage = () => {
         return await axios.post(`${url}/api/lessons/page`, request, {headers: {Authorization: authStr}})
     }
 
+    const fetchCourseTimetables = async () => {
+        return await axios.get(`${url}/api/timetables/course`, {headers: {Authorization: authStr}, params: {id}})
+    }
+
     const handleError = error => {
         let code = error.response.data.status
         if (code === 403 || code === 401)
@@ -249,7 +288,7 @@ export const CoursePage = () => {
     };
 
     const subscribe = async () => {
-        if(!course.hasSubscription) {
+        if (!course.hasSubscription) {
             await axios.post(`${url}/api/courses/subscribe`, {courseId: course.id}, {headers: {Authorization: authStr}})
         } else {
             await axios.post(`${url}/api/courses/unsubscribe`, {courseId: course.id}, {headers: {Authorization: authStr}})
@@ -273,6 +312,60 @@ export const CoursePage = () => {
         history.push('/courses')
     }
 
+    const handleSaveReview = () => {
+        if (header.length > 255) {
+            alert.show('Пожалуйста, заполните поля корректно')
+            return;
+        }
+        if (value > 0) {
+            saveReview()
+                .then(() => {
+                    setValue(0)
+                    setHeader('')
+                    setBody('')
+                })
+                .then(() => {
+                    fetchReview()
+                        .then(response => response.data)
+                        .then(reviews => setReviews(reviews))
+                        .catch(e => handleError(e))
+                })
+                .catch(e => handleError(e))
+        } else {
+            alert.show('Пожалуйста, заполните поля')
+        }
+    }
+
+    const saveReview = async () => {
+        await axios.post(`${url}/api/course-review`, {
+            courseId: course.id,
+            rating: value,
+            commentHead: header,
+            commentBody: body
+        }, {headers: {Authorization: authStr}})
+
+    }
+
+    const handleDeleteLesson = (id) => {
+        deleteLesson(id)
+            .then(() => {
+                setPage(0)
+                fetchLessonPage(course.id)
+                    .then(response => response.data)
+                    .then(page => {
+                        setLessonPage(page.content)
+                        setLessonsCount(page.totalCount)
+                        setEmptyRows(rowsPerPage - page.content.length)
+                    })
+                    .catch(e => handleError(e))
+            })
+    }
+
+    const deleteLesson = async id => {
+        await axios.delete(`${url}/api/lessons`, {headers: {Authorization: authStr}, params: {id}})
+    }
+
+
     return (
         <div>
             {course && course.educationProgram && (
@@ -288,12 +381,12 @@ export const CoursePage = () => {
                             {user && (
                                 <Grid
                                     item
-                                    xs={3}
+                                    xs={isDownMd ? 12 : 3}
                                     container
-                                    direction={"column"}
-                                    spacing={3}
+                                    direction={isDownMd? "row" : "column"}
+
                                 >
-                                    <Grid item>
+                                    <Grid item xs={isDownMd? 12: null} style={{marginBottom: theme.spacing(3)}}>
                                         <CourseInfoCard
                                             course={course}
                                             user={user}
@@ -306,7 +399,7 @@ export const CoursePage = () => {
                                             hasSubscription={course.hasSubscription}
                                         />
                                     </Grid>
-                                    <Grid item>
+                                    <Grid item xs={isDownMd? 12: null}>
                                         <TeachersCard
                                             teachers={teachers}
                                             courseId={course.id}
@@ -318,26 +411,122 @@ export const CoursePage = () => {
                                     </Grid>
                                 </Grid>
                             )}
-                            <Grid item xs={9}>
+                            <Grid item xs={isDownMd ? 12 : 9}>
                                 <TimetableCard
                                     handleChangeDate={handleChangeDate}
                                     lessons={lessons}
                                     lessonPage={lessonPage}
-                                    dictionary={dictionary}
                                     emptyRows={emptyRows}
                                     lessonsCount={lessonsCount}
                                     rowsPerPage={rowsPerPage}
                                     page={page}
                                     courses={[course]}
                                     handleChangePage={handleChangePage}
+                                    isCoursePage={true}
+                                    timetables={timetables}
+                                    deleteLesson={handleDeleteLesson}
+                                    creatorId={course.creatorId}
                                 />
+                                <Paper className={classes.marginUp}>
+                                    {(isAdmin() || (isStudent() && course.hasSubscription)) && (
+                                        <React.Fragment>
+                                            <Grid container spacing={2} alignItems={"center"}>
+                                                <Grid item xs={12}>
+                                                    <Typography variant={"h6"}>
+                                                        Оставить отзыв о курсe
+                                                    </Typography>
+                                                </Grid>
+                                                <Grid item xs={12} sm={2}>
+                                                    <Box component="fieldset" borderColor="transparent">
+                                                        <Rating
+                                                            size={isDownMd ? "small" : "medium"}
+                                                            name="simple-controlled"
+                                                            value={value}
+                                                            onChange={(event, newValue) => {
+                                                                setValue(newValue);
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                </Grid>
+                                                <Grid item xs={12} sm={8}>
+                                                    <TextField fullWidth id="outlined-basic" variant="outlined"
+                                                               value={header}
+                                                               onChange={e => setHeader(e.target.value)}/>
+                                                </Grid>
+                                                <Grid item xs={12} sm={2}>
+                                                    <Button
+                                                        size={isDownMd ? "small" : "medium"}
+                                                        fullWidth color={"primary"}
+                                                        onClick={handleSaveReview}>Отправить отзыв</Button>
+                                                </Grid>
+                                                <Grid item xs={12} sm={10}>
+                                                    <TextField
+                                                        fullWidth
+                                                        multiline
+                                                        rows={3}
+                                                        id="outlined-basic"
+                                                        variant="outlined"
+                                                        value={body}
+                                                        onChange={e => setBody(e.target.value)}
+                                                    />
+                                                </Grid>
+                                            </Grid>
+                                            <Divider className={classes.divider} variant="middle"/>
+                                        </React.Fragment>
+
+                                    )}
+
+                                    <Grid item xs={12}>
+                                        <List>
+                                            {reviews && reviews.map(review => (
+                                                review.user && (
+                                                    <ListItem alignItems="flex-start" key={review.userId}>
+                                                        <ListItemAvatar>
+                                                            <Avatar alt="Remy Sharp"
+                                                                    src={`${url}${review.user.photoUrl}`}/>
+                                                        </ListItemAvatar>
+                                                        <ListItemText
+                                                            primary={`${review.user.lastName} ${review.user.firstName} ${review.user.patronymic == null ? '' : review.user.patronymic}`}
+                                                            secondary={
+                                                                <React.Fragment>
+                                                                    <Rating size={"small"} name="read-only" value={review.rating} readOnly/>
+                                                                    <br/>
+                                                                    <Typography color={"textPrimary"} component="span">
+                                                                        {review.commentHead}
+                                                                    </Typography>
+                                                                    <br/>
+                                                                    <Typography component="span">
+                                                                        {review.commentBody}
+                                                                    </Typography>
+
+                                                                </React.Fragment>
+                                                            }
+                                                        />
+                                                    </ListItem>
+                                                )
+
+                                            ))}
+                                        </List>
+                                    </Grid>
+                                </Paper>
+
                             </Grid>
                         </Grid>
 
                     </div>
                     <SubscriptionConfirm
                         handleClose={handleSubClose}
-                        handleSubscribe={handleSubClose}
+                        handleSubscribe={() => {
+                            subscribe()
+                                .then(() => {
+                                    fetchCourse()
+                                        .then(response => response.data)
+                                        .then(course => setCourse(course))
+                                        .catch(e => handleError(e))
+                                })
+                                .then(setSubOpen(false))
+                                .catch(e => handleError(e))
+                        }}
                         courseName={course.educationProgram.name}
                         isSubscribe={!course.hasSubscription}
                         open={subOpen}

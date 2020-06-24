@@ -18,6 +18,7 @@ import {SubjectAddDialog} from "../components/SubjectAddDialog";
 import {DeleteDialog} from "../components/DeleteDialog";
 import {COURSE} from "../entityTypes";
 import {SubjectSettingDialog} from "../components/SubjectSettingDialog";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const useStyles = makeStyles(theme => ({
     loader: {
@@ -56,6 +57,18 @@ export const SubjectPage = () => {
     const [deleteSubjectId, setDeleteSubjectId] = useState()
     const alert = useContext(AlertContext)
 
+    const isDownSm = useMediaQuery(theme.breakpoints.down('sm'));
+    const isDownMd = useMediaQuery(theme.breakpoints.down('md'));
+    const isDownLg = useMediaQuery(theme.breakpoints.down('lg'));
+    const getXs = () => {
+        if (isDownLg) {
+            if (isDownMd) {
+                if (isDownSm) return 12
+                else return 6
+            } else return 4
+        } else return 3
+    }
+
     const pageSize = 12
 
     useEffect(() => {
@@ -89,6 +102,7 @@ export const SubjectPage = () => {
                     })
                     .catch(e => handleError(e))
             })
+            .then(() => alert.show('Предмет успешно удален', 'success'))
             .catch(e => handleError(e))
         setDeleteSubjectId()
         setDeleteOpen(false)
@@ -139,6 +153,7 @@ export const SubjectPage = () => {
                     })
                     .catch(e => handleError(e))
             })
+            .then(() => alert.show('Предмет успешно добавлен', 'success'))
             .catch(e => handleError(e))
     };
 
@@ -154,6 +169,7 @@ export const SubjectPage = () => {
                     })
                     .catch(e => handleError(e))
             })
+            .then(() => alert.show('Предмет успешно изменен', 'success'))
             .catch(e => handleError(e))
     };
 
@@ -206,7 +222,7 @@ export const SubjectPage = () => {
 
                 <Grid container className={classes.root} spacing={3}>
                     {subjectPage.map(subject => (
-                        <Grid key={subject.id} item xs={3}>
+                        <Grid key={subject.id} item xs={getXs()}>
                             <SubjectCard
                                 subject={subject}
                                 subjectTypeStr={dictionary[subject.type]}

@@ -18,6 +18,7 @@ import {FacultyAddDialog} from "../components/FacultyAddDialog";
 import {DeleteDialog} from "../components/DeleteDialog";
 import {FACULTY} from "../entityTypes";
 import {FacultyUpdateDialog} from "../components/FacultySettingCard";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const useStyles = makeStyles(theme => ({
     loader: {
@@ -52,6 +53,18 @@ export const FacultiesPage = () => {
     const [updateFac, setUpdateFac] = useState()
     const [deleteFacultyId, setDeleteFacultyId] = useState()
     const pageSize = 16
+
+    const isDownSm = useMediaQuery(theme.breakpoints.down('sm'));
+    const isDownMd = useMediaQuery(theme.breakpoints.down('md'));
+    const isDownLg = useMediaQuery(theme.breakpoints.down('lg'));
+    const getXs = () => {
+        if (isDownLg) {
+            if (isDownMd) {
+                if (isDownSm) return 12
+                else return 6
+            } else return 4
+        } else return 3
+    }
 
     useEffect(() => {
         setPageNum(1)
@@ -106,6 +119,7 @@ export const FacultiesPage = () => {
                         setPageCount(Math.ceil(response.data.totalCount / pageSize))
                     })
                     .catch(e => handleError(e))
+                    .then(() => alert.show('Институт успешно добавлен', 'success'))
             })
             .catch(e => handleError(e))
     }
@@ -121,6 +135,8 @@ export const FacultiesPage = () => {
                         setPageCount(Math.ceil(response.data.totalCount / pageSize))
                     })
                     .catch(e => handleError(e))
+                    .then(() => alert.show('Институт успешно изменен', 'success'))
+
             })
             .catch(e => handleError(e))
         setUpdateFac()
@@ -180,6 +196,7 @@ export const FacultiesPage = () => {
                     })
                     .catch(e => handleError(e))
             })
+            .then(() => alert.show('Институт успешно удален', 'success'))
             .catch(e => handleError(e))
         setDeleteFacultyId()
         setDeleteOpen(false)
@@ -208,7 +225,7 @@ export const FacultiesPage = () => {
 
                 <Grid container className={classes.root} spacing={3}>
                     {facultyPage.map(faculty => (
-                        <Grid key={faculty.id} item xs={3}>
+                        <Grid key={faculty.id} item xs={getXs()}>
                             <FacultyCard
                                 faculty={faculty}
                                 handleDelete={handleClickDeleteOpen}

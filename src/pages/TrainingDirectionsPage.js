@@ -18,6 +18,7 @@ import {TrainingDirectionAddDialog} from "../components/TrainingDirectionAddDial
 import {TrainingDirectionSettingDialog} from "../components/TrainingDirectionSettingDialog";
 import {DeleteDialog} from "../components/DeleteDialog";
 import {TRAINING_DIRECTION} from "../entityTypes";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 
 const useStyles = makeStyles(theme => ({
@@ -56,6 +57,18 @@ export const TrainingDirectionsPage = () => {
     const [deleteOpen, setDeleteOpen] = useState(false)
     const [deleteTrainingDirectionId, setDeleteTrainingDirectionId] = useState()
     const pageSize = 16
+
+    const isDownSm = useMediaQuery(theme.breakpoints.down('sm'));
+    const isDownMd = useMediaQuery(theme.breakpoints.down('md'));
+    const isDownLg = useMediaQuery(theme.breakpoints.down('lg'));
+    const getXs = () => {
+        if (isDownLg) {
+            if (isDownMd) {
+                if (isDownSm) return 12
+                else return 6
+            } else return 4
+        } else return 3
+    }
 
     useEffect(() => {
         setPageNum(1)
@@ -111,6 +124,7 @@ export const TrainingDirectionsPage = () => {
                     })
                     .catch(e => handleError(e))
             })
+            .then(() => alert.show('Направление подготовки успешно удалено', 'success'))
             .catch(e => handleError(e))
         setDeleteTrainingDirectionId()
         setDeleteOpen(false)
@@ -202,6 +216,7 @@ export const TrainingDirectionsPage = () => {
                     })
                     .catch(e => handleError(e))
             })
+            .then(() => alert.show('Направление подготовки успешно добавлено', 'success'))
             .catch(e => handleError(e))
     }
 
@@ -217,6 +232,7 @@ export const TrainingDirectionsPage = () => {
                     })
                     .catch(e => handleError(e))
             })
+            .then(() => alert.show('Направление подготовки успешно изменено', 'success'))
             .catch(e => handleError(e))
     }
 
@@ -248,7 +264,7 @@ export const TrainingDirectionsPage = () => {
                 </div>
                 <Grid container className={classes.root} spacing={3}>
                     {trainingDirectionPage.map(dir => (
-                        <Grid key={dir.id} item xs={3}>
+                        <Grid key={dir.id} item xs={getXs()}>
                             <TrainingDirectionCard
                                 trainingDirection={dir}
                                 facultyName={getFacultyName(dir.facultyId)}

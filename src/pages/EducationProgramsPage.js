@@ -18,6 +18,8 @@ import {EducationProgramAddDialog} from "../components/EducationProgramAddDialog
 import {DeleteDialog} from "../components/DeleteDialog";
 import {EDUCATION_PROGRAM} from "../entityTypes";
 import {EducationProgramSettingDialog} from "../components/EducationProgramSettingDialog";
+import {ThemeSettingDialog} from "../components/ThemeSettingDialog";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const useStyles = makeStyles(theme => ({
     loader: {
@@ -51,9 +53,21 @@ export const EducationProgramsPage = () => {
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [settingsEP, setSettingsEP] = useState();
     const [deleteOpen, setDeleteOpen] = useState(false)
+    const [themeOpen, setThemeOpen] = useState(false)
+    const [themeEP, setThemeEP] = useState();
     const [deleteEducationProgramId, setDeleteEducationProgramId] = useState()
 
-
+    const isDownSm = useMediaQuery(theme.breakpoints.down('sm'));
+    const isDownMd = useMediaQuery(theme.breakpoints.down('md'));
+    const isDownLg = useMediaQuery(theme.breakpoints.down('lg'));
+    const getXs = () => {
+        if (isDownLg) {
+            if (isDownMd) {
+                if (isDownSm) return 12
+                else return 6
+            } else return 4
+        } else return 3
+    }
     const pageSize = 12
 
     useEffect(() => {
@@ -77,7 +91,7 @@ export const EducationProgramsPage = () => {
 
 
     const fetchSubjectPage = async () => {
-        const request = {pageNum, pageSize}
+        const request = {pageNum, pageSize, sortType: 'DESC'}
         return await axios.post(`${url}/api/education-programs/page`, request, {headers: {Authorization: authStr}})
     }
 
@@ -102,6 +116,16 @@ export const EducationProgramsPage = () => {
 
     const handleClose = () => {
         setOpen(false);
+    };
+
+    const handleClickOpenTheme = id => {
+        setThemeEP(id)
+        setThemeOpen(true);
+    };
+
+    const handleCloseTheme = () => {
+        setThemeOpen(false);
+        setThemeEP()
     };
 
     const handleClickOpenSettings = ep => {
@@ -145,6 +169,7 @@ export const EducationProgramsPage = () => {
                         setCount(response.data.totalCount)
                         setPageCount(Math.ceil(response.data.totalCount / pageSize))
                     })
+                    .then(() => alert.show('Программа обучения успешно добавлена', 'success'))
                     .catch(e => handleError(e))
             })
     }
@@ -161,12 +186,13 @@ export const EducationProgramsPage = () => {
                     })
                     .catch(e => handleError(e))
             })
+            .then(() => alert.show('Программа обучения успешно изменена', 'success'))
             .catch(e => handleError(e))
         setSettingsEP()
     }
 
     const handleDelete = () => {
-        if(!deleteEducationProgramId) return
+        if (!deleteEducationProgramId) return
         deleteEducationProgram(deleteEducationProgramId)
             .then(() => {
                 setPageNum(1)
@@ -178,6 +204,7 @@ export const EducationProgramsPage = () => {
                     })
                     .catch(e => handleError(e))
             })
+            .then(() => alert.show('Программа обучения успешно удалена', 'success'))
             .catch(e => handleError(e))
         setDeleteEducationProgramId()
         setDeleteOpen(false)
@@ -206,16 +233,17 @@ export const EducationProgramsPage = () => {
 
                 <Grid container className={classes.root} spacing={3}>
                     {educationProgramPage.map(educationProgram => (
-                        <Grid key={educationProgram.id} item xs={3}>
+                        <Grid key={educationProgram.id} item xs={getXs()}>
                             <EducationProgramCard
                                 educationProgram={educationProgram}
                                 handleUpdate={handleClickOpenSettings}
                                 handleDelete={handleClickDeleteOpen}
+                                openThemeSettings={handleClickOpenTheme}
                             />
                         </Grid>
                     ))}
                 </Grid>
-                {(educationProgramPage && pageCount && pageCount > 1 ) && (
+                {(educationProgramPage && pageCount && pageCount > 1) && (
                     <div style={{display: 'flex', justifyContent: 'center', marginTop: theme.spacing(2)}}>
                         <Pagination
                             count={pageCount}
@@ -254,6 +282,11 @@ export const EducationProgramsPage = () => {
                 open={deleteOpen}
                 handleAccept={handleDelete}
                 entityType={EDUCATION_PROGRAM}
+            />
+            <ThemeSettingDialog
+                open={themeOpen}
+                handleClose={handleCloseTheme}
+                educationProgramId={themeEP}
             />
         </React.Fragment>
 

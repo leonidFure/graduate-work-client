@@ -15,7 +15,7 @@ import IconButton from "@material-ui/core/IconButton";
 import InputBase from "@material-ui/core/InputBase";
 import FormControl from "@material-ui/core/FormControl";
 import AddIcon from '@material-ui/icons/Add';
-
+import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 import {BootstrapInput} from "../components/BootstrapInput";
 import Tooltip from "@material-ui/core/Tooltip";
 import Fab from "@material-ui/core/Fab";
@@ -25,6 +25,7 @@ import Box from "@material-ui/core/Box";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import {DeleteDialog} from "../components/DeleteDialog";
 import {COURSE} from "../entityTypes";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const url = process.env.REACT_APP_SERVER_URL;
 
@@ -94,12 +95,11 @@ function useQuery() {
 }
 
 export const CoursesPage = () => {
-
     const ACCESS_TOKEN = localStorage.getItem('accessToken')
     const authStr = 'Bearer '.concat(ACCESS_TOKEN);
     const query = useQuery()
     const subjectId = query.get("subject_id")
-    const trainingDirectionId = query.get("training_direction_id")
+    const educationProgramId = query.get("education_program_id")
     const [coursePage, setCoursePage] = useState()
     const [pageCount, setPageCount] = useState(1)
     const [subjectList, setSubjectList] = useState()
@@ -120,6 +120,17 @@ export const CoursesPage = () => {
 
     const alert = useContext(AlertContext)
     const theme = useTheme();
+    const isDownSm = useMediaQuery(theme.breakpoints.down('sm'));
+    const isDownMd = useMediaQuery(theme.breakpoints.down('md'));
+    const isDownLg = useMediaQuery(theme.breakpoints.down('lg'));
+    const getXs = () => {
+        if (isDownLg) {
+            if (isDownMd) {
+                if (isDownSm) return 12
+                else return 6
+            } else return 4
+        } else return 3
+    }
 
     const pageSize = 8
 
@@ -190,7 +201,7 @@ export const CoursesPage = () => {
             sortField: currentSortField,
             sortType: currentSortType,
             subjectId,
-            trainingDirectionId
+            educationProgramId
         }
         return await axios.post(`${url}/api/courses/page`, pageRequest, {headers: {Authorization: authStr}})
     }
@@ -262,6 +273,7 @@ export const CoursesPage = () => {
                     })
                     .catch(e => handleError(e))
             })
+            .then(() => alert.show('Курс успешно удален', 'success'))
             .catch(e => handleError(e))
         setDeleteCourseId()
         setDeleteOpen(false)
@@ -377,7 +389,7 @@ export const CoursesPage = () => {
                         {coursePage && (
                             coursePage.map(course => (
                                 course.educationProgram && subjectList && (
-                                    <Grid key={course.id} item xs={3}>
+                                    <Grid key={course.id} item xs={getXs()}>
                                         <CourseCard
                                             name={course.educationProgram.name}
                                             startDate={course.startDate}

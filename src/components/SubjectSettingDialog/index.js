@@ -63,7 +63,7 @@ export const SubjectSettingDialog = ({subject, open, handleClose, saveSubject}) 
 
     return (
         <Dialog open={open} onClose={pHandleClose} aria-labelledby="form-dialog-title">
-            <DialogTitle id="form-dialog-title">Добавить программу обучения</DialogTitle>
+            <DialogTitle id="form-dialog-title">Редктировать предмет</DialogTitle>
             <DialogContent>
                 <Grid container spacing={2}>
                     <Grid item xs={12}>

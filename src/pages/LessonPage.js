@@ -16,8 +16,9 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogActions from "@material-ui/core/DialogActions";
 import Button from "@material-ui/core/Button";
-import {CourseInfoCard} from "../components/CourseInfoCard";
-import {isAdmin, isTeacher} from "../roles";
+import {LessonsThemesSettingDialog} from "../components/LessonThemesSettingDialog";
+import useTheme from "@material-ui/core/styles/useTheme";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -72,6 +73,15 @@ export const LessonPage = () => {
     const [liveEventState, setLiveEventState] = useState()
     const [openStart, setOpenStart] = useState(false)
     const [visible, setVisible] = useState(false)
+    const [themeOpen, setThemeOpen] = useState(false)
+    const checkDate = lesson => {
+        const curDate = new Date()
+        return curDate >= new Date(lesson.startTime) && curDate <= new Date(lesson.endTime)
+    }
+
+    const theme = useTheme()
+    const isDownMd = useMediaQuery(theme.breakpoints.down('md'));
+
 
     useEffect(() => {
         fetchLesson()
@@ -258,6 +268,18 @@ export const LessonPage = () => {
         setOpenStart(true)
     }
 
+    const handleCloseTheme = () => {
+        setThemeOpen(false)
+        fetchLesson()
+            .then(response => response.data)
+            .then(lesson => setLesson(lesson))
+            .catch(error => handleError(error))
+    }
+
+    const openTheme = () => {
+        setThemeOpen(true)
+    }
+
     const deleteFile = async id => {
         return await axios.delete(`${url}/api/files/lessons`,
             {
@@ -267,6 +289,22 @@ export const LessonPage = () => {
                 },
                 params: {lessonId: lesson.id, fileId: id},
             })
+    }
+
+    const deleteTheme = id => {
+        deleteThemeFromLesson(id)
+            .then(() => {
+                fetchLesson()
+                    .then(response => response.data)
+                    .then(lesson => setLesson(lesson))
+                    .catch(error => handleError(error))
+            })
+            .catch(error => handleError(error))
+    }
+
+    const deleteThemeFromLesson = async themeId => {
+        const request = {themeId, lessonId: lesson.id}
+        await axios.post(`${url}/api/themes/lesson/delete`, request, {headers: {Authorization: authStr}})
     }
 
     return (
@@ -289,12 +327,11 @@ export const LessonPage = () => {
                         <Grid container spacing={5}>
                             <Grid
                                 item
-                                xs={3}
+                                xs={isDownMd ? 12 : 3}
                                 container
-                                direction={"column"}
-                                spacing={4}
+                                direction={isDownMd? "row" : "column"}
                             >
-                                <Grid item xs>
+                                <Grid item xs={isDownMd ? 12: null} style={{marginBottom: theme.spacing(3)}}>
                                     <LessonCard
                                         lesson={lesson}
                                         course={course}
@@ -302,22 +339,26 @@ export const LessonPage = () => {
                                         startLiveEvent={handleStartLiveEvent}
                                         openInfo={openInfo}
                                         liveEventState={liveEventState}
+                                        canTranslate={checkDate(lesson)}
+                                        openTheme={openTheme}
+                                        deleteTheme={deleteTheme}
                                     />
                                 </Grid>
-                                <Grid item xs>
+                                <Grid item xs={isDownMd ? 12: null}>
                                     {course && (
-                                        <FilesCard files={files}
-                                                   creatorId={course.creatorId}
-                                                   uploadFile={handleUploadFile}
-                                                   visible={visible}
-                                                   deleteFile={handleDeleteFile}
+                                        <FilesCard
+                                            files={files}
+                                            creatorId={course.creatorId}
+                                            uploadFile={handleUploadFile}
+                                            visible={visible}
+                                            deleteFile={handleDeleteFile}
                                         />
                                     )}
                                 </Grid>
                             </Grid>
-                            <Grid item xs={9}>
+                            <Grid item xs={isDownMd ? 12 : 9}>
                                 <Paper>
-                                    {liveEvent ? (
+                                    {(liveEvent && checkDate(lesson)) ? (
                                         <div id='wowza_player'></div>
                                     ) : (
                                         <Typography variant={"h2"} color={"textSecondary"} className={classes.margin}>
@@ -336,6 +377,15 @@ export const LessonPage = () => {
                             liveEvent={liveEvent}
                         />
                     )}
+                    {lesson && course && course.educationProgram && (
+                        <LessonsThemesSettingDialog
+                            open={themeOpen}
+                            handleClose={handleCloseTheme}
+                            lessonId={lesson.id}
+                            educationProgramId={course.educationProgram.id}
+                        />
+                    )}
+
                 </React.Fragment>
 
 

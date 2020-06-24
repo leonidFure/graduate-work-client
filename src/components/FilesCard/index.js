@@ -37,6 +37,11 @@ const useStyles = makeStyles(theme => ({
 
 export const FilesCard = ({files, creatorId, uploadFile, visible, deleteFile}) => {
     const classes = useStyles()
+    const separateLength = 22
+
+    const getCrop = (str) => {
+        return `${str.substring(0, separateLength)}${str.length > separateLength ? '...' : ''}`
+    }
 
     return (
         <Card>
@@ -59,29 +64,23 @@ export const FilesCard = ({files, creatorId, uploadFile, visible, deleteFile}) =
                                     </React.Fragment>
                                 } key={file.id}>
                                     <ListItem button component={"a"} href={`${url}${file.url}`}>
-                                        <Grid container alignItems={"center"}>
-                                            <Grid item>
-                                                <ListItemAvatar>
-                                                    <Avatar>
-                                                        <InsertDriveFileIcon/>
-                                                    </Avatar>
-                                                </ListItemAvatar>
-                                            </Grid>
-                                            <Grid item xs={8} zeroMinWidth>
-                                                <ListItemText
-                                                    primary={
-                                                        <Typography noWrap>
-                                                            {file.name}
-                                                        </Typography>
-                                                    }
-                                                    secondary={new Date(file.uploadingDateTime).toLocaleDateString('ru', {
-                                                        day: 'numeric',
-                                                        month: 'long',
-                                                        year: 'numeric'
-                                                    })}
-                                                />
-                                            </Grid>
-                                        </Grid>
+                                        <ListItemAvatar>
+                                            <Avatar>
+                                                <InsertDriveFileIcon/>
+                                            </Avatar>
+                                        </ListItemAvatar>
+                                        <ListItemText
+                                            primary={
+                                                <Typography noWrap>
+                                                    {getCrop(file.name)}
+                                                </Typography>
+                                            }
+                                            secondary={new Date(file.uploadingDateTime).toLocaleDateString('ru', {
+                                                day: 'numeric',
+                                                month: 'long',
+                                                year: 'numeric'
+                                            })}
+                                        />
                                         <ListItemSecondaryAction>
                                             <IconButton edge="end" aria-label="comments" onClick={() => deleteFile(file.id)}>
                                                 <DeleteIcon />

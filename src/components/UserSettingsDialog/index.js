@@ -9,38 +9,52 @@ import Grid from "@material-ui/core/Grid";
 import {AlertContext} from "../../context/notify/alertContext";
 import {KeyboardDatePicker} from "@material-ui/pickers";
 import Autocomplete from "@material-ui/lab/Autocomplete";
-import {isAdmin, isTeacher} from "../../roles";
+import {isAdmin, isStudent, isTeacher} from "../../roles";
+import Avatar from "@material-ui/core/Avatar";
+import makeStyles from "@material-ui/core/styles/makeStyles";
+import Typography from "@material-ui/core/Typography";
 
-export const UserSettingsDialog = ({user = {}, open, handleClose, saveUserInfo, allFaculties, faculties, saveFaculties}) => {
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        cursor: 'pointer'
+    },
+    small: {
+        width: theme.spacing(3),
+        height: theme.spacing(3),
+    },
+    large: {
+        width: theme.spacing(7),
+        height: theme.spacing(7),
+    },
+}));
+
+const url = process.env.REACT_APP_SERVER_URL;
+export const UserSettingsDialog = ({user = {}, open, handleClose, saveUserInfo, allFaculties, faculties, saveFaculties, saveFile}) => {
+    const classes = useStyles();
+    const fr = new FileReader();
+    const [file, setFile] = useState()
+    const [fileUrl, setFileUrl] = useState()
     const [firstName, setFirstName] = useState(user.firstName)
+    // eslint-disable-next-line no-unused-vars
+    const [email, setEmail] = useState(user.email)
     const [lastName, setLastName] = useState(user.lastName)
     const [patronymic, setPatronymic] = useState(user.patronymic)
-    const [email, setEmail] = useState(user.email)
     const [info, setInfo] = useState(user.info)
     const [startWorkDate, setStartWorkDate] = useState(user.startWorkDate)
-    const [loginValid, setLoginValid] = useState(true)
     const [firstNameValid, setFirstNameValid] = useState(true)
     const [lastNameValid, setLastNameValid] = useState(true)
     const [defaultValue, setDefaultValue] = useState(faculties)
     const [curFaculties, setCurFaculties] = useState(defaultValue)
     const alert = useContext(AlertContext)
 
-
-    const getDefaultValues = () => {
-        if(!allFaculties) return []
-        if(!defaultValue) return []
-        const defaultValuesIds = defaultValue.map(faculty => faculty.id);
-        return
-    }
-
-    const emailCheck = login => {
-        if (!login.trim()) return false
-        return /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(login)
-    }
-
-    const handleChangeEmail = e => {
-        setEmail(e.target.value)
-        setLoginValid(true)
+    const handleChangeFile = e => {
+        setFileUrl(fr.result)
+        fr.onload = function () {
+            setFileUrl(fr.result)
+        }
+        fr.readAsDataURL(e.target.files[0])
+        setFile(e.target.files[0])
     }
 
     const handleChangeFirstName = e => {
@@ -76,10 +90,6 @@ export const UserSettingsDialog = ({user = {}, open, handleClose, saveUserInfo, 
     const handleSave = () => {
         let paramsValid = true
 
-        if (!emailCheck(email)) {
-            setLoginValid(false)
-            paramsValid = false
-        }
 
         if (!firstName.trim()) {
             setFirstNameValid(false)
@@ -97,13 +107,16 @@ export const UserSettingsDialog = ({user = {}, open, handleClose, saveUserInfo, 
             user.firstName = firstName ? firstName : null
             user.lastName = lastName ? lastName : null
             user.patronymic = patronymic ? patronymic : null
-            user.email = email ? email : null
+            user.email = email
             user.info = info ? info : null
             user.startWorkDate = startWorkDate ? startWorkDate : null
             setDefaultValue(curFaculties)
             saveUserInfo(user)
-            const list = curFaculties.map(faculty => ({teacherId: user.id, facultyId: faculty.id}));
-            saveFaculties({list}, user.id)
+            if(!isStudent()) {
+                const list = curFaculties.map(faculty => ({teacherId: user.id, facultyId: faculty.id}));
+                saveFaculties({list}, user.id)
+            }
+            if(file) saveFile(file)
             handleClose()
         }
     }
@@ -113,7 +126,27 @@ export const UserSettingsDialog = ({user = {}, open, handleClose, saveUserInfo, 
         <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Настройки данных пользователя</DialogTitle>
             <DialogContent>
-                <Grid container spacing={2}>
+                <Grid container spacing={2} alignItems={"center"}>
+                    <Grid item xs={12} sm={2}>
+                        {fileUrl? (
+                            <Avatar className={classes.large} alt={user.lastName} src={fileUrl} />
+
+                        ) : (
+                            <Avatar className={classes.large} alt={user.lastName} src={`${url}${user.photoUrl}`} />
+                        )}
+                    </Grid>
+                    <Grid item xs={12} sm={10}  >
+                        <div className="example-2">
+                            <div className="form-group">
+                                <input type="file" accept="image/jpeg" name="file" id="file" className="input-file" onChange={handleChangeFile}/>
+                                <label htmlFor="file" className={classes.root}>
+                                    <Typography>
+                                        Изменить аватар
+                                    </Typography>
+                                </label>
+                            </div>
+                        </div>
+                    </Grid>
                     <Grid item xs={12} sm={4}>
                         <TextField
                             id="lastName"
@@ -152,20 +185,6 @@ export const UserSettingsDialog = ({user = {}, open, handleClose, saveUserInfo, 
                             name="patronymic"
                             value={patronymic}
                             onChange={handleChangePatronymic}
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField
-                            variant="outlined"
-                            required
-                            fullWidth
-                            id="email"
-                            label="Электронная почта"
-                            name="email"
-                            autoComplete="email"
-                            value={email}
-                            error={!loginValid}
-                            onChange={handleChangeEmail}
                         />
                     </Grid>
                     {(isTeacher() || isAdmin()) && (

@@ -10,8 +10,6 @@ import axios from "axios";
 import List from "@material-ui/core/List";
 import {useHistory} from "react-router-dom";
 import ListItem from "@material-ui/core/ListItem";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import Avatar from "@material-ui/core/Avatar";
 import ListItemText from "@material-ui/core/ListItemText";
 import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 
@@ -20,15 +18,16 @@ const authStr = 'Bearer '.concat(ACCESS_TOKEN);
 const url = process.env.REACT_APP_SERVER_URL;
 
 
-export const TeacherAddDialog = ({open, handleClose, courseId}) => {
+export const LessonsThemesSettingDialog = ({open, handleClose, lessonId, educationProgramId}) => {
     const alert = useContext(AlertContext)
     const history = useHistory()
-    const [users, setUsers] = useState()
+    const [themes, setThemes] = useState()
+
     useEffect(() => {
         if(!open || open === false) return
-        fetchAllUsers()
+        fetchAllThemes()
             .then(resp => resp.data)
-            .then(users => setUsers(users))
+            .then(themes => setThemes(themes))
             .catch(e => handleError(e))
         // eslint-disable-next-line
     }, [open])
@@ -42,43 +41,54 @@ export const TeacherAddDialog = ({open, handleClose, courseId}) => {
     }
 
     const handleAdd = teacherId => {
-        addTeacherToCourse(teacherId)
+        addThemeToLesson(teacherId)
             .then(() => {
-                fetchAllUsers()
+                fetchAllThemes()
                     .then(resp => resp.data)
-                    .then(users => setUsers(users))
+                    .then(themes => setThemes(themes))
                     .catch(e => handleError(e))
             })
             .catch(e => handleError(e))
     }
 
-    const fetchAllUsers = async () => {
-        return await axios.get(`${url}/api/users/list/${courseId}/not/teachers`, {headers: {Authorization: authStr}})
+    const fetchAllThemes = async () => {
+        return await axios.get(`${url}/api/themes/list/lesson`, {headers: {Authorization: authStr}, params: {educationProgramId, lessonId}})
     }
 
-    const addTeacherToCourse = async teacherId => {
-        const request = {courseId, teacherId}
-        await axios.post(`${url}/api/courses/teacher/add`, request, {headers: {Authorization: authStr}})
+    const addThemeToLesson = async themeId => {
+        const request = {themeId, lessonId}
+        await axios.post(`${url}/api/themes/lesson/add`, request, {headers: {Authorization: authStr}})
     }
 
     return (
-        <Dialog  open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+        <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Добавить преподавателей на курс</DialogTitle>
             <DialogContent>
                 <Grid container spacing={2}>
                     <Grid item xs={12}>
+                        <TextField
+                            id="lastName"
+                            name="lastName"
+                            label="ФИО преподавателя"
+                            autoComplete="lname"
+                            variant="outlined"
+                            autoFocus
+                            required
+                            fullWidth
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
                         <List style={{maxHeight: 300, overflow: 'auto'}}>
-                            {users && (
-                                users.map(user => (
-                                    <ListItem key={user.id} button  onClick={() => handleAdd(user.id)}>
-                                        <ListItemAvatar>
-                                            <Avatar
-                                                src={`${url}${user.photoUrl}`}
-                                            />
-                                        </ListItemAvatar>
+                            {themes && (
+                                themes.map(theme => (
+                                    <ListItem key={theme.id} button>
                                         <ListItemText
-                                            primary={`${user.lastName} ${user.firstName} ${user.patronymic == null ? '' : user.patronymic}`}
+                                            primary={theme.name}
+                                            secondary={theme.description}
                                         />
+                                        <ListItemSecondaryAction>
+                                            <Button onClick={() => handleAdd(theme.id)}>Добавить</Button>
+                                        </ListItemSecondaryAction>
                                     </ListItem>
                                 ))
                             )}

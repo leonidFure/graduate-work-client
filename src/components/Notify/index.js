@@ -7,7 +7,7 @@ export const Notify = () => {
     const {alert, hide} =useContext(AlertContext)
     if(!alert.visible) return null
     return(
-        <Snackbar open={alert.visible} autoHideDuration={6000} onClose={hide}>
+        <Snackbar open={alert.visible} autoHideDuration={3000} onClose={hide}>
             <Alert onClose={hide} severity={alert.type}>
                 {alert.text}
             </Alert>

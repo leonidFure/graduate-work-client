@@ -3,7 +3,7 @@ import {UserInfoCard} from "../components/UserInfoCard"
 import axios from 'axios'
 import {useHistory, useParams} from 'react-router-dom'
 import {AlertContext} from "../context/notify/alertContext";
-import {isAdmin, isTeacher} from '../roles'
+import {ADMIN, isAdmin, isTeacher, TEACHER} from '../roles'
 import Grid from "@material-ui/core/Grid";
 import {EducationProgramsCard} from "../components/EducationProgramsCard";
 import {TimetableCard} from "../components/TimetableCard";
@@ -11,7 +11,8 @@ import Link from "@material-ui/core/Link";
 import Typography from "@material-ui/core/Typography";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import makeStyles from "@material-ui/core/styles/makeStyles";
-
+import useMediaQuery from "@material-ui/core/useMediaQuery";
+import useTheme from "@material-ui/core/styles/useTheme";
 
 
 const useStyles = makeStyles(theme => ({
@@ -27,11 +28,13 @@ export const UserPage = () => {
     const ACCESS_TOKEN = localStorage.getItem('accessToken')
     const CURRENT_USER_ID = localStorage.getItem('currentUserId')
     const authStr = 'Bearer '.concat(ACCESS_TOKEN);
+    const theme = useTheme()
+
     const {id} = useParams()
     const history = useHistory()
     const alert = useContext(AlertContext)
-
     const [user, setUser] = useState()
+    const [src, setSrc] = useState()
     const [faculties, setFaculties] = useState()
     const [allFaculties, setAllFaculties] = useState()
     const [lessons, setLessons] = useState()
@@ -43,10 +46,16 @@ export const UserPage = () => {
     const [courses, setCourses] = useState()
     const [courseIds, setCourseIds] = useState()
 
+    const isDownMd = useMediaQuery(theme.breakpoints.down('md'));
+
+
     useEffect(() => {
         fetchUser(id)
             .then(response => response.data)
-            .then(user => setUser(user))
+            .then(user => {
+                setUser(user)
+                setSrc(`${url}${user.photoUrl}`)
+            })
             .catch(e => handleError(e))
         fetchDictionary()
             .then(response => setDictionary(response.data))
@@ -60,7 +69,7 @@ export const UserPage = () => {
 
     useEffect(() => {
         if (user) {
-            if (isAdmin() || isTeacher()) {
+            if (user.role === ADMIN || user.role === TEACHER) {
                 fetchFaculty(id)
                     .then(response => response.data)
                     .then(faculties => setFaculties(faculties))
@@ -158,6 +167,10 @@ export const UserPage = () => {
 
     const saveTeachersFaculties = async (model, id) => {
         return await axios.post(`${url}/api/faculties/teacher/edit/${id}`, model, {headers: {Authorization: authStr}})
+    }
+
+    const savePassword = async (model) => {
+        return await axios.patch(`${url}/api/users/password`, model, {headers: {Authorization: authStr}})
 
     }
 
@@ -198,6 +211,35 @@ export const UserPage = () => {
             .catch(e => handleError(e))
     }
 
+    const handleSavePassword = request => {
+        savePassword(request)
+            .then(() => alert.show('Пароль успешно изменен', 'success'))
+            .catch(e => handleError(e))
+    }
+
+    const handleSaveFile = file => {
+        setSrc('')
+        saveFile(file)
+            .then(() => {
+                setTimeout(()=> {
+                    setSrc(`${url}${user.photoUrl}`)
+                },500)
+            })
+            .catch(e => handleError(e))
+    }
+
+    const saveFile = async file => {
+        const form = new FormData()
+        form.append('image', file)
+        return await axios.post(`${url}/api/files/users/self`, form,
+            {
+                headers: {
+                    Authorization: authStr,
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+    }
+
     return (
         <React.Fragment>
             {user && (
@@ -205,19 +247,20 @@ export const UserPage = () => {
                     <Link color="inherit" href="/users">
                         Пользователи
                     </Link>
-                    <Typography color="textPrimary">{`${user.lastName} ${user.firstName} ${!user.patronymic ? '' : user.patronymic}`}</Typography>
+                    <Typography
+                        color="textPrimary">{`${user.lastName} ${user.firstName} ${!user.patronymic ? '' : user.patronymic}`}</Typography>
                 </Breadcrumbs>
             )}
 
             <Grid container spacing={5}>
                 <Grid
                     item
-                    xs={3}
+                    xs={isDownMd? 12: 3}
                     container
-                    direction={"column"}
-                    spacing={4}
+                    direction={isDownMd? "row" : "column"}
+
                 >
-                    <Grid item>
+                    <Grid item xs={isDownMd? 12: null} style={{marginBottom: theme.spacing(3)}}>
                         <UserInfoCard
                             user={user}
                             faculties={faculties}
@@ -225,15 +268,18 @@ export const UserPage = () => {
                             saveUserInfo={handleSaveUser}
                             allFaculties={allFaculties}
                             saveFaculties={handleSaveFaculties}
+                            savePassword={handleSavePassword}
+                            saveFile={handleSaveFile}
+                            src={src}
                         />
                     </Grid>
-                    <Grid item>
+                    <Grid item xs={isDownMd? 12: null}>
                         <EducationProgramsCard
                             courses={courses}
                         />
                     </Grid>
                 </Grid>
-                <Grid item xs={9}>
+                <Grid item xs={isDownMd? 12 : 9}>
                     <TimetableCard
                         handleChangeDate={handleChangeDate}
                         lessons={lessons}

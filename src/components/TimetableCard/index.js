@@ -24,6 +24,7 @@ import LastPageIcon from "@material-ui/icons/LastPage";
 import FirstPageIcon from "@material-ui/icons/FirstPage";
 import KeyboardArrowRight from "@material-ui/icons/KeyboardArrowRight";
 import KeyboardArrowLeft from "@material-ui/icons/KeyboardArrowLeft";
+import {isAdmin} from "../../roles";
 
 
 const useStyles = makeStyles(theme => ({
@@ -43,7 +44,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 
-export const TimetableCard = ({handleChangeDate, lessons, lessonPage, dictionary, emptyRows, lessonsCount, rowsPerPage, page, courses, handleChangePage}) => {
+export const TimetableCard = ({handleChangeDate, lessons, lessonPage, emptyRows, lessonsCount, rowsPerPage, page, courses, handleChangePage, isCoursePage = false, timetables, deleteLesson, creatorId}) => {
     const [tab, setTab] = useState(0)
 
     const handleChangeTab = (e, newValue) => {
@@ -69,13 +70,16 @@ export const TimetableCard = ({handleChangeDate, lessons, lessonPage, dictionary
             <TabPanel value={tab} index={1}>
                 <LessonList
                     lessonPage={lessonPage}
-                    dictionary={dictionary}
                     emptyRows={emptyRows}
                     lessonsCount={lessonsCount}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     courses={courses}
                     handleChangePage={handleChangePage}
+                    isCoursePage={isCoursePage}
+                    timetables={timetables}
+                    deleteLesson={deleteLesson}
+                    creatorId={creatorId}
                 />
             </TabPanel>
         </Paper>
@@ -164,7 +168,9 @@ const Calendar = ({handleChangeDate, lessons}) => {
     )
 }
 
-const LessonList = ({lessonPage, dictionary, emptyRows, lessonsCount, rowsPerPage, page, courses, handleChangePage}) => {
+const LessonList = ({lessonPage, emptyRows, lessonsCount, rowsPerPage, page, courses, handleChangePage, isCoursePage, deleteLesson, creatorId}) => {
+    const userId = localStorage.getItem('currentUserId')
+
     const classes = useStyles()
     if (!lessonPage) return 'Занятий нет'
     const rowHeight = 67
@@ -178,6 +184,7 @@ const LessonList = ({lessonPage, dictionary, emptyRows, lessonsCount, rowsPerPag
                             <TableCell>Время проведения</TableCell>
                             <TableCell>Курс</TableCell>
                             <TableCell>Темы занятия</TableCell>
+                            {isCoursePage && (isAdmin() || creatorId === userId) && (<TableCell/>)}
                             <TableCell/>
                         </TableRow>
                     </TableHead>
@@ -190,11 +197,17 @@ const LessonList = ({lessonPage, dictionary, emptyRows, lessonsCount, rowsPerPag
                                         {new Date(row.date).toLocaleDateString('ru', {day: 'numeric', month: 'long'})}
                                     </TableCell>
                                     <TableCell component="th" scope="row">
-                                        {`${new Date(row.startTime).toLocaleTimeString('ru', {hour: 'numeric', minute: 'numeric'})} - ${new Date(row.endTime).toLocaleTimeString('ru', {hour: 'numeric', minute: 'numeric'})}`}
+                                        {`${new Date(row.startTime).toLocaleTimeString('ru', {
+                                            hour: 'numeric',
+                                            minute: 'numeric'
+                                        })} - ${new Date(row.endTime).toLocaleTimeString('ru', {
+                                            hour: 'numeric',
+                                            minute: 'numeric'
+                                        })}`}
                                     </TableCell>
                                     <TableCell>
                                         <Link href={`/courses/${course.id}`}>
-                                            {course.educationProgram? course.educationProgram.name : ''}
+                                            {course.educationProgram ? course.educationProgram.name : ''}
                                         </Link>
                                     </TableCell>
                                     <TableCell>
@@ -202,6 +215,12 @@ const LessonList = ({lessonPage, dictionary, emptyRows, lessonsCount, rowsPerPag
                                             row.themes.map(theme => theme.name).join(', ')
                                         )}
                                     </TableCell>
+                                    {isCoursePage && (isAdmin() || creatorId === userId) && (
+                                        <TableCell>
+                                            <Button onClick={() => deleteLesson(row.id)} color={"secondary"}>Удалить</Button>
+                                        </TableCell>
+                                    )}
+
                                     <TableCell>
                                         <Button href={`/lessons/${row.id}`}>Посмотреть</Button>
                                     </TableCell>

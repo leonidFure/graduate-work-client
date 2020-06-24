@@ -229,12 +229,6 @@ export const RegisterPage = () => {
                                 onChange={handleChangeSecondPassword}
                             />
                         </Grid>
-                        <Grid item xs={12}>
-                            <FormControlLabel
-                                control={<Checkbox value="allowExtraEmails" color="primary"/>}
-                                label="Я хочу получать обновления по электронной почте"
-                            />
-                        </Grid>
                     </Grid>
                     <Button
                         fullWidth

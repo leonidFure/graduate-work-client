@@ -79,7 +79,7 @@ export const FacultyUpdateDialog = ({faculty, open, handleClose, saveDirection, 
 
     return (
         <Dialog open={open} onClose={pHandleClose} aria-labelledby="form-dialog-title">
-            <DialogTitle id="form-dialog-title">Добавить программу обучения</DialogTitle>
+            <DialogTitle id="form-dialog-title">Редактировать институт</DialogTitle>
             <DialogContent>
                 <Grid container spacing={2}>
                     <Grid item xs={12} sm={8}>

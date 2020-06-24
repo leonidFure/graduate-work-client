@@ -47,7 +47,7 @@ const useStyles = makeStyles(theme => ({
 const url = process.env.REACT_APP_SERVER_URL;
 
 export const CourseInfoCard = ({course, user, subject, expanded, handleExpandClick, startDateStr, endDateStr, handleSubscribe, hasSubscription}) => {
-
+    const userId = localStorage.getItem('currentUserId')
     const classes = useStyles()
     return (
         <React.Fragment>
@@ -86,7 +86,7 @@ export const CourseInfoCard = ({course, user, subject, expanded, handleExpandCli
                 <Collapse in={expanded} timeout="auto" unmountOnExit>
                     <CardContent>
                         <List component="nav" className={classes.root}>
-                            <ListItem button>
+                            <ListItem button key={'asd'}>
                                 <ListItemAvatar>
                                     <Avatar className={classes.avatar}>
                                         <PersonIcon/>
@@ -97,7 +97,7 @@ export const CourseInfoCard = ({course, user, subject, expanded, handleExpandCli
                                 />
                             </ListItem>
                             {subject && (
-                                <ListItem>
+                                <ListItem key={'asd1'}>
                                     <ListItemAvatar>
                                         <Avatar className={classes.avatar}>
                                             <ImportContactsIcon/>
@@ -107,7 +107,7 @@ export const CourseInfoCard = ({course, user, subject, expanded, handleExpandCli
                                                   primary={subject.name}/>
                                 </ListItem>
                             )}
-                            <ListItem>
+                            <ListItem key={'asd2'}>
                                 <ListItemAvatar>
                                     <Avatar className={classes.avatar}>
                                         <DateRangeIcon/>
